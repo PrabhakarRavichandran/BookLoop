@@ -1719,18 +1719,3 @@ key workflows, and keep credentials and private data out of the public
 repository.
 
 ------------------------------------------------------------------------
-
-## Maintainer Checklist Before Publishing
-
--   [ ] Confirm the repository name and public URL.
--   [ ] Verify all folders and files in the repository tree.
--   [ ] Check every route and API payload against the backend.
--   [ ] Match the ER diagram to the actual SQL schema.
--   [ ] Add exact Python and database version requirements.
--   [ ] Confirm the README startup commands work on a clean setup.
--   [ ] Test login, listing creation, offers, and wishlist.
--   [ ] Remove secrets, real user data, local databases, and unnecessary
-    generated files.
--   [ ] Add screenshots only after capturing the actual application.
--   [ ] Update the limitations section so it accurately reflects the
-    shipped version.
