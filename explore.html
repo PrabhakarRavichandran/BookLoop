@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Explore Books — BookLoop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="dashboard.html" class="navbar-brand">BookLoop</a>
+  <ul class="nav-links" id="navMenu">
+    <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+    <li><a href="explore.html"   class="nav-link">Explore</a></li>
+    <li><a href="sell.html"      class="nav-link">Sell</a></li>
+    <li><a href="wanted.html"    class="nav-link">Wanted</a></li>
+    <li><a href="offers.html"    class="nav-link">Offers</a></li>
+    <li><a href="wishlist.html"  class="nav-link">Wishlist</a></li>
+    <li><a href="profile.html"   class="nav-link">Profile</a></li>
+  </ul>
+  <div class="navbar-actions">
+    <span class="nav-user-name" id="navUserName"></span>
+    <button class="btn btn-ghost btn-sm" onclick="logout()">Logout</button>
+    <a href="sell.html" class="btn btn-accent btn-sm">+ List a Book</a>
+    <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="container">
+    <h1>Explore Books</h1>
+    <p>Browse what students on your campus are selling, exchanging, and giving away right now.</p>
+  </div>
+</div>
+
+<main style="padding: var(--sp-8) 0 var(--sp-12);">
+  <div class="container">
+
+    <div class="explore-controls">
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search by title, author or subject..." oninput="renderBooks()" autocomplete="off" />
+        <button class="btn btn-accent" onclick="renderBooks()">Search</button>
+      </div>
+      <div class="filter-row" style="margin-bottom:var(--sp-2);">
+        <div class="filter-chips" id="typeFilters">
+          <span class="chip active" data-filter="All"       onclick="setFilter(this,'type')">All</span>
+          <span class="chip"        data-filter="Sell"      onclick="setFilter(this,'type')">Sell</span>
+          <span class="chip"        data-filter="Exchange"  onclick="setFilter(this,'type')">Exchange</span>
+          <span class="chip"        data-filter="Donate"    onclick="setFilter(this,'type')">Donate</span>
+          <span class="chip"        data-filter="AVAILABLE" onclick="setFilter(this,'type')">Available</span>
+          <span class="chip"        data-filter="SOLD"      onclick="setFilter(this,'type')">Sold</span>
+        </div>
+      </div>
+      <div class="filter-row" style="margin-bottom:var(--sp-3);">
+        <div class="filter-chips" id="semFilters">
+          <span style="font-size:.75rem; color:var(--muted); font-weight:600; letter-spacing:.04em; text-transform:uppercase;">Sem:</span>
+          <span class="chip active" data-sem="All" onclick="setFilter(this,'sem')">All</span>
+          <span class="chip" data-sem="1" onclick="setFilter(this,'sem')">1</span>
+          <span class="chip" data-sem="2" onclick="setFilter(this,'sem')">2</span>
+          <span class="chip" data-sem="3" onclick="setFilter(this,'sem')">3</span>
+          <span class="chip" data-sem="4" onclick="setFilter(this,'sem')">4</span>
+          <span class="chip" data-sem="5" onclick="setFilter(this,'sem')">5</span>
+          <span class="chip" data-sem="6" onclick="setFilter(this,'sem')">6</span>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+        <span class="results-count" id="resultsCount">Loading...</span>
+        <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Clear all filters</button>
+      </div>
+    </div>
+
+    <div class="books-grid" id="booksGrid"></div>
+
+    <div class="empty-state hidden" id="emptyState">
+      <h3>No books found</h3>
+      <p>Try different keywords or remove some filters.</p>
+      <button class="btn btn-outline" style="margin-top:var(--sp-3);" onclick="clearFilters()">Clear filters</button>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <span>BookLoop &mdash; Made for students</span>
+      <a href="sell.html" class="btn btn-accent btn-sm">+ List a Book</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/app.js"></script>
+<script>
+  var activeTypeFilter = "All";
+  var activeSemFilter  = "All";
+  var _allBooks = [];
+  var _wishlist = [];
+
+  async function init() {
+    var user = await requireAuth();
+    if (!user) return;
+    renderNavUser();
+    _allBooks = await getBooks();
+    _wishlist = await getWishlist();
+    var sub = new URLSearchParams(window.location.search).get("subject");
+    if (sub) document.getElementById("searchInput").value = sub;
+    renderBooks();
+  }
+
+  function setFilter(chip, group) {
+    if (group === "type") {
+      document.querySelectorAll("#typeFilters .chip").forEach(function(c){ c.classList.remove("active"); });
+      chip.classList.add("active"); activeTypeFilter = chip.dataset.filter;
+    } else {
+      document.querySelectorAll("#semFilters .chip").forEach(function(c){ c.classList.remove("active"); });
+      chip.classList.add("active"); activeSemFilter = chip.dataset.sem;
+    }
+    renderBooks();
+  }
+
+  function clearFilters() {
+    activeTypeFilter = "All"; activeSemFilter = "All";
+    document.getElementById("searchInput").value = "";
+    document.querySelectorAll("[data-filter]").forEach(function(c){ c.classList.remove("active"); });
+    document.querySelectorAll("[data-sem]").forEach(function(c){ c.classList.remove("active"); });
+    document.querySelector("[data-filter='All']").classList.add("active");
+    document.querySelector("[data-sem='All']").classList.add("active");
+    renderBooks();
+  }
+
+  function renderBooks() {
+    var q = document.getElementById("searchInput").value.trim().toLowerCase();
+    var books = _allBooks.slice();
+    if (q) books = books.filter(function(b){
+      return b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q) || b.subject.toLowerCase().includes(q);
+    });
+    books = filterBooks(books, activeTypeFilter);
+    books = filterBySemester(books, activeSemFilter);
+
+    var grid = document.getElementById("booksGrid"), empty = document.getElementById("emptyState"), count = document.getElementById("resultsCount");
+    if (books.length === 0) { grid.innerHTML = ""; empty.classList.remove("hidden"); count.textContent = "0 books found"; return; }
+    empty.classList.add("hidden");
+    count.textContent = books.length + " book" + (books.length !== 1 ? "s" : "") + " found";
+    grid.innerHTML = books.map(function(book) {
+      var w = _wishlist.map(Number).includes(Number(book.id));
+      return '<div class="card fade-in">' +
+        getBookCoverHTML(book) +
+        '<div class="book-card-body">' +
+          '<div class="book-card-header">' +
+            '<span class="book-card-title">' + book.title + '</span>' +
+            '<button class="heart-btn" onclick="toggleWL(' + book.id + ')" id="h-' + book.id + '" title="Wishlist">&#' + (w ? '9829' : '9825') + ';</button>' +
+          '</div>' +
+          '<div class="book-card-author">by ' + book.author + '</div>' +
+          '<div class="book-card-meta">' +
+            '<span class="book-price">' + (book.type === "Donate" ? "Free" : "&#8377;" + book.price) + '</span>' +
+            '<span class="book-condition">' + book.condition + '</span>' +
+          '</div>' +
+          '<div style="font-size:.75rem;color:var(--muted);margin-bottom:8px;">Sem ' + book.semester + ' &middot; ' + book.subject + '</div>' +
+          '<div class="book-status-row">' + getStatusBadge(book.status) + ' ' + getTypeBadge(book.type) + '</div>' +
+          '<div class="book-seller"><strong>' + book.seller + '</strong> &middot; ' + (book.dept||"CSE") + '</div>' +
+          '<a href="book.html?id=' + book.id + '" class="btn btn-outline btn-sm btn-full" style="margin-top:8px;">View Details</a>' +
+        '</div></div>';
+    }).join("");
+  }
+
+  async function toggleWL(id) {
+    var added = await toggleWishlist(id);
+    _wishlist = await getWishlist();
+    var btn = document.getElementById("h-" + id);
+    if (btn) btn.innerHTML = added ? "&#9829;" : "&#9825;";
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>

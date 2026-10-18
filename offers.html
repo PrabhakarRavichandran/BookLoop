@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Offers Received — BookLoop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ── Handover panel ── */
+    .handover-panel {
+      margin-top: 14px;
+      padding: 16px;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .handover-title {
+      font-size: .78rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .07em;
+      color: var(--text-light); margin-bottom: 12px;
+    }
+    .tx-stages {
+      display: flex; gap: 0; margin-bottom: 14px; border-radius: 6px; overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .tx-stage-step {
+      flex: 1; padding: 6px 4px; text-align: center;
+      font-size: .65rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .04em; color: var(--muted);
+      background: var(--bg-card);
+      border-right: 1px solid var(--border);
+    }
+    .tx-stage-step:last-child { border-right: none; }
+    .tx-stage-step.active {
+      background: var(--accent); color: #fff;
+    }
+    .tx-stage-step.done {
+      background: #16A34A; color: #fff;
+    }
+    .handover-code-box {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 14px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); margin-bottom: 12px;
+    }
+    .handover-code-label { font-size: .72rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+    .handover-code-value { font-family: var(--font-head); font-size: 1.4rem; font-weight: 800; letter-spacing: .15em; color: var(--text); }
+    .handover-confirm-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .handover-code-input {
+      flex: 1; min-width: 120px; max-width: 180px;
+      padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px;
+      background: var(--bg-card); color: var(--text);
+      font-size: .9rem; font-family: var(--font-head); font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .handover-note { font-size: .75rem; color: var(--muted); margin-top: 8px; }
+    .tx-complete-banner {
+      padding: 12px 16px; border-radius: var(--radius);
+      background: #D1FAE5; border: 1px solid #6EE7B7; color: #065F46;
+      font-weight: 700; font-size: .85rem; text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="dashboard.html" class="navbar-brand">BookLoop</a>
+  <ul class="nav-links" id="navMenu">
+    <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+    <li><a href="explore.html"   class="nav-link">Explore</a></li>
+    <li><a href="sell.html"      class="nav-link">Sell</a></li>
+    <li><a href="wanted.html"    class="nav-link">Wanted</a></li>
+    <li><a href="offers.html"    class="nav-link">Offers</a></li>
+    <li><a href="wishlist.html"  class="nav-link">Wishlist</a></li>
+    <li><a href="profile.html"   class="nav-link">Profile</a></li>
+  </ul>
+  <div class="navbar-actions">
+    <span class="nav-user-name" id="navUserName"></span>
+    <button class="btn btn-ghost btn-sm" onclick="logout()">Logout</button>
+    <a href="sell.html" class="btn btn-accent btn-sm">+ List a Book</a>
+    <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="container">
+    <h1>Offers Received</h1>
+    <p>Review offers from students interested in your books. Accept one to reserve the book, then complete the handover.</p>
+  </div>
+</div>
+
+<main class="offers-page">
+  <div class="container">
+
+    <!-- Counts -->
+    <div style="display:flex; gap:var(--sp-3); margin-bottom:var(--sp-6); flex-wrap:wrap;">
+      <div style="padding:var(--sp-2) var(--sp-4); border:1px solid var(--border); border-radius:var(--radius); background:var(--bg-card);">
+        <div style="font-family:var(--font-head); font-size:1.5rem; font-weight:800;" id="cntPending">0</div>
+        <div style="font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-weight:700;">Pending</div>
+      </div>
+      <div style="padding:var(--sp-2) var(--sp-4); border:1px solid var(--border); border-radius:var(--radius); background:var(--bg-card);">
+        <div style="font-family:var(--font-head); font-size:1.5rem; font-weight:800;" id="cntAccepted">0</div>
+        <div style="font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-weight:700;">Accepted</div>
+      </div>
+      <div style="padding:var(--sp-2) var(--sp-4); border:1px solid var(--border); border-radius:var(--radius); background:var(--bg-card);">
+        <div style="font-family:var(--font-head); font-size:1.5rem; font-weight:800;" id="cntCompleted">0</div>
+        <div style="font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-weight:700;">Completed</div>
+      </div>
+      <div style="padding:var(--sp-2) var(--sp-4); border:1px solid var(--border); border-radius:var(--radius); background:var(--bg-card);">
+        <div style="font-family:var(--font-head); font-size:1.5rem; font-weight:800;" id="cntRejected">0</div>
+        <div style="font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-weight:700;">Declined</div>
+      </div>
+    </div>
+
+    <div id="offersContainer"></div>
+
+    <div id="offersEmpty" class="empty-state hidden">
+      <h3>No offers yet</h3>
+      <p>When students make offers on your books they will appear here. Make sure your listings are live in Explore.</p>
+      <a href="explore.html" class="btn btn-outline" style="margin-top:var(--sp-3);">View Explore</a>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom"><span>BookLoop &mdash; Made for students</span></div>
+  </div>
+</footer>
+
+<script src="js/app.js"></script>
+<script>
+  var me = null;
+
+  async function init() {
+    me = await requireAuth();
+    if (!me) return;
+    renderNavUser();
+    await renderOffers();
+  }
+
+  async function renderOffers() {
+    var allOffers = await getOffers();
+    var allBooks  = await getBooks();
+    var myBooks   = allBooks.filter(function(b){ return b.sellerId == me.id; });
+    var myBookIds = myBooks.map(function(b){ return b.id; });
+    var received  = allOffers.filter(function(o){ return myBookIds.map(Number).includes(Number(o.bookId)); });
+
+    // Also show offers I sent that are ACCEPTED (for buyer handover)
+    var sentAccepted = allOffers.filter(function(o){
+      return o.buyerId == me.id && o.status === "ACCEPTED";
+    });
+
+    document.getElementById("cntPending").textContent   = received.filter(function(o){ return o.status==="PENDING";  }).length;
+    document.getElementById("cntAccepted").textContent  = received.filter(function(o){ return o.status==="ACCEPTED"; }).length;
+    document.getElementById("cntCompleted").textContent = received.filter(function(o){ return o.txStage==="COMPLETED"; }).length;
+    document.getElementById("cntRejected").textContent  = received.filter(function(o){ return o.status==="REJECTED"; }).length;
+
+    var container = document.getElementById("offersContainer");
+    var empty     = document.getElementById("offersEmpty");
+
+    if (received.length === 0 && sentAccepted.length === 0) {
+      container.innerHTML = ""; empty.classList.remove("hidden"); return;
+    }
+    empty.classList.add("hidden");
+
+    var html = "";
+
+    // --- OFFERS I SENT (ACCEPTED) - buyer handover section ---
+    if (sentAccepted.length > 0) {
+      html += '<div style="margin-bottom:var(--sp-6);">' +
+        '<h3 style="font-size:1rem; font-weight:700; margin-bottom:var(--sp-3); color:var(--text);">Handover Required — Offers I Sent</h3>' +
+        sentAccepted.map(function(o) { return renderBuyerHandover(o, allBooks); }).join("") +
+      '</div>';
+    }
+
+    // --- OFFERS ON MY BOOKS ---
+    var grouped = {};
+    received.forEach(function(o){ if (!grouped[o.bookId]) grouped[o.bookId]=[]; grouped[o.bookId].push(o); });
+
+    Object.keys(grouped).forEach(function(bookId) {
+      var offers = grouped[bookId];
+      var book   = myBooks.find(function(b){ return b.id == bookId; });
+      if (!book) return;
+      var disabled = book.status !== "AVAILABLE";
+
+      html += '<div class="offers-book-section">' +
+        '<div class="offers-book-header">' +
+          '<div>' +
+            '<div class="offers-book-title">' + book.title + '</div>' +
+            '<div class="offers-asking">' +
+              (book.type === "Donate" ? "Free" : "&#8377;" + book.price + " asking") +
+              ' &nbsp;&middot;&nbsp; ' + offers.length + ' offer' + (offers.length > 1 ? 's' : '') +
+              ' &nbsp;&middot;&nbsp; ' + getStatusBadge(book.status) +
+            '</div>' +
+          '</div>' +
+          '<div style="display:flex; gap:8px;">' +
+            (book.status === "RESERVED" ? '<button class="btn btn-warning btn-sm" onclick="doMarkSold(' + book.id + ')">Mark as Sold</button>' : "") +
+            '<a href="book.html?id=' + book.id + '" class="btn btn-ghost btn-sm">View listing &rarr;</a>' +
+          '</div>' +
+        '</div>' +
+        offers.map(function(o){ return renderOfferRow(o, disabled, book); }).join("") +
+      '</div>';
+    });
+    container.innerHTML = html;
+  }
+
+  function renderOfferRow(offer, disabled, book) {
+    var isAcc = offer.status === "ACCEPTED", isRej = offer.status === "REJECTED";
+    var isCompleted = offer.txStage === "COMPLETED";
+    var label = isAcc ? '<span class="badge badge-available">Accepted</span>' :
+                (isRej ? '<span class="badge badge-sold">Declined</span>' : '');
+    var actions = (!isAcc && !isRej && !disabled) ?
+      '<div class="offer-actions">' +
+        '<button class="btn btn-success btn-sm" onclick="doAccept(' + offer.id + ')">Accept</button>' +
+        '<button class="btn btn-ghost btn-sm"   onclick="doReject(' + offer.id + ')">Decline</button>' +
+      '</div>' : "";
+
+    var handoverHTML = "";
+    if (isAcc && !isCompleted) {
+      handoverHTML = renderSellerHandover(offer);
+    } else if (isCompleted) {
+      handoverHTML = '<div class="handover-panel"><div class="tx-complete-banner">Transaction Completed — Book handed over successfully.</div></div>';
+    }
+
+    return '<div class="offer-item ' + (isAcc?"accepted":isRej?"rejected":"") + '">' +
+      '<div style="flex:1; min-width:0;">' +
+        '<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:4px;">' +
+          '<span class="offer-buyer">' + offer.buyerName + '</span>' +
+          '<span class="offer-dept">'  + offer.buyerDept + '</span>' +
+          label +
+        '</div>' +
+        '<div class="offer-price">&#8377;' + offer.offerPrice + '</div>' +
+        '<div class="offer-msg">"' + offer.message + '"</div>' +
+        '<div style="font-size:.75rem; color:var(--muted); margin-top:4px;">' + offer.createdAt + '</div>' +
+        handoverHTML +
+      '</div>' +
+      actions +
+    '</div>';
+  }
+
+  function renderSellerHandover(offer) {
+    var stage = offer.txStage || "ACCEPTED";
+    var sc = offer.sellerConfirmed, bc = offer.buyerConfirmed;
+
+    var stagesHTML = renderStageStrip(stage, sc, bc);
+
+    var codeBox = '<div class="handover-code-box">' +
+      '<div>' +
+        '<div class="handover-code-label">Handover Code (share with buyer)</div>' +
+        '<div class="handover-code-value">' + (offer.handoverCode || "—") + '</div>' +
+      '</div>' +
+    '</div>';
+
+    var sellerBtn = "";
+    if (!sc) {
+      sellerBtn = '<button class="btn btn-accent btn-sm" onclick="doSellerConfirm(' + offer.id + ')">I Have Handed Over the Book</button>';
+    } else {
+      sellerBtn = '<span style="font-size:.8rem; color:#16A34A; font-weight:700;">You confirmed handover</span>';
+    }
+
+    var note = '<div class="handover-note">Share the code with the buyer. Both parties must confirm to complete the transaction.</div>';
+
+    return '<div class="handover-panel">' +
+      '<div class="handover-title">Transaction Handover</div>' +
+      stagesHTML + codeBox +
+      '<div class="handover-confirm-row">' + sellerBtn + '</div>' +
+      note +
+    '</div>';
+  }
+
+  function renderBuyerHandover(offer, allBooks) {
+    var book = allBooks.find(function(b){ return b.id == offer.bookId; });
+    var stage = offer.txStage || "ACCEPTED";
+    var sc = offer.sellerConfirmed, bc = offer.buyerConfirmed;
+    var isCompleted = stage === "COMPLETED";
+
+    if (isCompleted) {
+      return '<div class="offers-book-section">' +
+        '<div class="offers-book-header">' +
+          '<div><div class="offers-book-title">' + offer.bookTitle + '</div>' +
+          '<div class="offers-asking">Your offer of &#8377;' + offer.offerPrice + '</div></div>' +
+        '</div>' +
+        '<div class="handover-panel"><div class="tx-complete-banner">Transaction Completed — You received the book.</div></div>' +
+      '</div>';
+    }
+
+    var stagesHTML = renderStageStrip(stage, sc, bc);
+
+    var buyerSection = "";
+    if (!bc) {
+      buyerSection = '<div class="handover-confirm-row">' +
+        '<input class="handover-code-input" id="buyerCode_' + offer.id + '" placeholder="Enter code" maxlength="8" />' +
+        '<button class="btn btn-accent btn-sm" onclick="doBuyerConfirm(' + offer.id + ')">Confirm Receipt</button>' +
+      '</div>';
+    } else {
+      buyerSection = '<span style="font-size:.8rem; color:#16A34A; font-weight:700;">You confirmed receipt</span>';
+    }
+
+    return '<div class="offers-book-section">' +
+      '<div class="offers-book-header">' +
+        '<div><div class="offers-book-title">' + offer.bookTitle + '</div>' +
+        '<div class="offers-asking">Your offer of &#8377;' + offer.offerPrice + ' &middot; ' + getStatusBadge("RESERVED") + '</div></div>' +
+        (book ? '<a href="book.html?id=' + book.id + '" class="btn btn-ghost btn-sm">View &rarr;</a>' : '') +
+      '</div>' +
+      '<div class="handover-panel">' +
+        '<div class="handover-title">Transaction Handover</div>' +
+        stagesHTML +
+        '<div class="handover-note" style="margin-bottom:10px;">Enter the code the seller shared with you to confirm you received the book.</div>' +
+        buyerSection +
+      '</div>' +
+    '</div>';
+  }
+
+  function renderStageStrip(stage, sc, bc) {
+    var stages = [
+      { key: "ACCEPTED",         label: "Accepted" },
+      { key: "SELLER_CONFIRMED", label: "Seller Ready" },
+      { key: "HANDOVER_PENDING", label: "Buyer Entered Code" },
+      { key: "COMPLETED",        label: "Completed" },
+    ];
+    var order = ["ACCEPTED","SELLER_CONFIRMED","HANDOVER_PENDING","COMPLETED"];
+    var current = order.indexOf(stage);
+    return '<div class="tx-stages">' +
+      stages.map(function(s, i) {
+        var cls = i < current ? "done" : (i === current ? "active" : "");
+        return '<div class="tx-stage-step ' + cls + '">' + s.label + '</div>';
+      }).join("") +
+    '</div>';
+  }
+
+  async function doAccept(id) {
+    try {
+      await acceptOffer(id);
+      _cache.offers = null;
+      await renderOffers();
+    } catch(e) { showToast(e.message, "danger"); }
+  }
+  async function doReject(id) {
+    await rejectOffer(id);
+    _cache.offers = null;
+    await renderOffers();
+  }
+  async function doMarkSold(id) {
+    if (!confirm("Mark as SOLD?")) return;
+    await markAsSold(id);
+    _cache.books = null;
+    await renderOffers();
+  }
+
+  async function doSellerConfirm(offerId) {
+    try {
+      await apiFetch("/offers/" + offerId + "/seller-confirm", { method: "POST" });
+      _cache.offers = null; _cache.books = null;
+      showToast("Handover confirmed. Waiting for buyer.", "success");
+      await renderOffers();
+    } catch(e) { showToast(e.message, "danger"); }
+  }
+
+  async function doBuyerConfirm(offerId) {
+    var code = (document.getElementById("buyerCode_" + offerId) || {}).value || "";
+    if (!code.trim()) { showToast("Enter the handover code.", "info"); return; }
+    try {
+      var r = await apiFetch("/offers/" + offerId + "/buyer-confirm", {
+        method: "POST",
+        body: JSON.stringify({ code: code.trim() }),
+      });
+      _cache.offers = null; _cache.books = null;
+      if (r.data && r.data.txStage === "COMPLETED") {
+        showToast("Transaction completed! Book is now marked as sold.", "success");
+      } else {
+        showToast("Code accepted. Waiting for seller confirmation.", "success");
+      }
+      await renderOffers();
+    } catch(e) { showToast(e.message, "danger"); }
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>

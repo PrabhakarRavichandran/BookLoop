@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BookLoop - Campus Second-Hand Book Marketplace</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="js/app.js"></script>
+  <script>
+    // index.html is just a redirect entry point.
+    // Send user to dashboard if logged in, login page if not.
+    document.addEventListener("DOMContentLoaded", async function() {
+      document.documentElement.style.visibility = "hidden";
+      var user = await fetchCurrentUser();
+      window.location.href = user ? "dashboard.html" : "login.html";
+    });
+  </script>
+</head>
+<body>
+  <p style="font-family:sans-serif; padding:40px; color:#6B7280;">Redirecting...</p>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>List a Book — BookLoop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="dashboard.html" class="navbar-brand">BookLoop</a>
+  <ul class="nav-links" id="navMenu">
+    <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+    <li><a href="explore.html"   class="nav-link">Explore</a></li>
+    <li><a href="sell.html"      class="nav-link">Sell</a></li>
+    <li><a href="wanted.html"    class="nav-link">Wanted</a></li>
+    <li><a href="offers.html"    class="nav-link">Offers</a></li>
+    <li><a href="wishlist.html"  class="nav-link">Wishlist</a></li>
+    <li><a href="profile.html"   class="nav-link">Profile</a></li>
+  </ul>
+  <div class="navbar-actions">
+    <span class="nav-user-name" id="navUserName"></span>
+    <button class="btn btn-ghost btn-sm" onclick="logout()">Logout</button>
+    <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="container">
+    <h1>List a Book</h1>
+    <p>Takes 2 minutes. Your listing is live for all students on campus immediately.</p>
+  </div>
+</div>
+
+<main class="container">
+  <div class="sell-layout">
+
+    <!-- FORM -->
+    <div class="sell-form-card">
+      <form id="sellForm" onsubmit="handleSubmit(event)">
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="bookTitle">Book Title *</label>
+            <input type="text" id="bookTitle" class="form-input" placeholder="e.g. Operating Systems" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="bookAuthor">Author *</label>
+            <input type="text" id="bookAuthor" class="form-input" placeholder="e.g. Abraham Silberschatz" required />
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="bookSubject">Subject *</label>
+            <input type="text" id="bookSubject" class="form-input" placeholder="e.g. Computer Networks" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="bookSemester">Semester *</label>
+            <select id="bookSemester" class="form-select" required>
+              <option value="">Select</option>
+              <option value="1">1st</option><option value="2">2nd</option>
+              <option value="3">3rd</option><option value="4">4th</option>
+              <option value="5">5th</option><option value="6">6th</option>
+              <option value="7">7th</option><option value="8">8th</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="bookCondition">Condition *</label>
+            <select id="bookCondition" class="form-select" required>
+              <option value="">Select</option>
+              <option>Like New</option><option>Good</option><option>Fair</option><option>Poor</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="bookPrice">Price (&#8377;)</label>
+            <input type="number" id="bookPrice" class="form-input" placeholder="e.g. 350" min="0" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="bookDesc">Description</label>
+          <textarea id="bookDesc" class="form-textarea" placeholder="Mention the edition, any highlights, dog-eared pages, missing covers — buyers appreciate honesty."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Listing Type *</label>
+          <div class="type-options">
+            <label class="type-option"><input type="radio" name="type" value="Sell" checked /> Sell</label>
+            <label class="type-option"><input type="radio" name="type" value="Exchange" /> Exchange</label>
+            <label class="type-option"><input type="radio" name="type" value="Donate" /> Donate</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Cover colour</label>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;" id="colorPicker">
+            <div class="colordot active" data-color="#6366F1" style="background:#6366F1;"></div>
+            <div class="colordot" data-color="#E4572E" style="background:#E4572E;"></div>
+            <div class="colordot" data-color="#10B981" style="background:#10B981;"></div>
+            <div class="colordot" data-color="#3B82F6" style="background:#3B82F6;"></div>
+            <div class="colordot" data-color="#8B5CF6" style="background:#8B5CF6;"></div>
+            <div class="colordot" data-color="#F59E0B" style="background:#F59E0B;"></div>
+            <div class="colordot" data-color="#F97316" style="background:#F97316;"></div>
+            <div class="colordot" data-color="#14B8A6" style="background:#14B8A6;"></div>
+          </div>
+        </div>
+
+        <div id="sellError" style="color:#B91C1C; font-size:.85rem; margin-bottom:12px; display:none;"></div>
+        <button type="submit" class="btn btn-accent btn-full btn-lg" id="submitBtn">List My Book</button>
+      </form>
+    </div>
+
+    <!-- TIPS sidebar -->
+    <div class="sell-tips-card">
+      <h3>Tips for a faster sale</h3>
+      <div class="tip-item"><span style="font-weight:800; color:var(--bg); opacity:.6; font-size:.75rem;">01</span><span>Exact title + author = more search hits.</span></div>
+      <div class="tip-item"><span style="font-weight:800; color:var(--bg); opacity:.6; font-size:.75rem;">02</span><span>Honest condition description means fewer no-shows.</span></div>
+      <div class="tip-item"><span style="font-weight:800; color:var(--bg); opacity:.6; font-size:.75rem;">03</span><span>Price 20-30% below MRP and it usually sells the same day.</span></div>
+      <div class="tip-item"><span style="font-weight:800; color:var(--bg); opacity:.6; font-size:.75rem;">04</span><span>For Exchange, mention what book you are looking for in the description.</span></div>
+      <div class="tip-item"><span style="font-weight:800; color:var(--bg); opacity:.6; font-size:.75rem;">05</span><span>Check Offers in your dashboard once listed.</span></div>
+
+      <!-- Preview -->
+      <div style="margin-top:var(--sp-4); border-top:1px solid rgba(255,255,255,.1); padding-top:var(--sp-4);">
+        <div style="font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; color:rgba(250,247,242,.35); margin-bottom:10px; font-weight:700;">Preview</div>
+        <div id="prev-cover" style="height:64px; border-radius:4px; display:flex; align-items:center; justify-content:center; background:rgba(99,102,241,.4); font-family:var(--font-head); font-weight:800; color:rgba(255,255,255,.85); font-size:1.1rem; margin-bottom:10px;">?</div>
+        <div id="prev-title"  style="font-size:.88rem; font-weight:700; color:var(--bg); margin-bottom:2px;">Book title</div>
+        <div id="prev-author" style="font-size:.78rem; color:rgba(250,247,242,.45); margin-bottom:6px;">Author</div>
+        <div id="prev-price"  style="font-family:var(--font-head); font-size:1rem; font-weight:800; color:var(--bg);">&#8377;-</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<style>
+  .colordot {
+    width: 28px; height: 28px; border-radius: 50%;
+    cursor: pointer; border: 2px solid transparent;
+    transition: transform 160ms ease, border-color 160ms ease;
+  }
+  .colordot:hover  { transform: scale(1.15); }
+  .colordot.active { border-color: var(--text); transform: scale(1.15); }
+</style>
+
+<footer class="footer" style="margin-top:var(--sp-12);">
+  <div class="container">
+    <div class="footer-bottom"><span>BookLoop &mdash; Made for students</span></div>
+  </div>
+</footer>
+
+<script src="js/app.js"></script>
+<script>
+  var user = null;
+  var selColor = "#6366F1";
+
+  async function init() {
+    user = await requireAuth();
+    if (!user) return;
+    renderNavUser();
+
+    document.querySelectorAll(".colordot").forEach(function(dot) {
+      dot.addEventListener("click", function() {
+        document.querySelectorAll(".colordot").forEach(function(d){ d.classList.remove("active"); });
+        dot.classList.add("active"); selColor = dot.dataset.color; updatePreview();
+      });
+    });
+
+    ["bookTitle","bookAuthor","bookPrice"].forEach(function(id){
+      document.getElementById(id).addEventListener("input", updatePreview);
+    });
+    document.querySelectorAll("input[name='type']").forEach(function(r){ r.addEventListener("change", updatePreview); });
+    updatePreview();
+  }
+
+  function updatePreview() {
+    var t = document.getElementById("bookTitle").value  || "Book title";
+    var a = document.getElementById("bookAuthor").value || "Author";
+    var p = document.getElementById("bookPrice").value;
+    var type = document.querySelector("input[name='type']:checked").value;
+    document.getElementById("prev-title").textContent  = t;
+    document.getElementById("prev-author").textContent = a;
+    document.getElementById("prev-price").innerHTML    = type === "Donate" ? "Free" : (p ? "&#8377;" + p : "&#8377;-");
+    document.getElementById("prev-cover").textContent  = t.trim().substring(0,4).toUpperCase() || "?";
+    document.getElementById("prev-cover").style.background = selColor + "55";
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    var err   = document.getElementById("sellError"); err.style.display = "none";
+    var title = document.getElementById("bookTitle").value.trim();
+    var author= document.getElementById("bookAuthor").value.trim();
+    var subj  = document.getElementById("bookSubject").value.trim();
+    var sem   = document.getElementById("bookSemester").value;
+    var cond  = document.getElementById("bookCondition").value;
+    var price = document.getElementById("bookPrice").value;
+    var desc  = document.getElementById("bookDesc").value.trim();
+    var type  = document.querySelector("input[name='type']:checked").value;
+
+    if (!title||!author||!subj||!sem||!cond) { err.textContent="Fill in all required fields."; err.style.display=""; return; }
+    if (type==="Sell" && (!price||parseInt(price)<=0)) { err.textContent="Enter a price for a Sell listing."; err.style.display=""; return; }
+
+    var btn = document.getElementById("submitBtn");
+    btn.disabled = true; btn.textContent = "Listing…";
+
+    try {
+      var nb = await addBook({
+        title:title, author:author, subject:subj, semester:sem, condition:cond,
+        description:desc||"No description.", price:parseInt(price)||0, type:type,
+        cover:title.substring(0,4).toUpperCase(), color:selColor
+      });
+      showToast("Book listed successfully.", "success");
+      btn.textContent = "Listed!";
+      setTimeout(function(){ window.location.href = "book.html?id=" + nb.id; }, 1500);
+    } catch(e2) {
+      err.textContent = e2.message; err.style.display = "";
+      btn.disabled = false; btn.textContent = "List My Book";
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>

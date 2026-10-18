@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — BookLoop</title>
+  <meta name="description" content="Log in or register with OTP verification to access BookLoop — the campus book marketplace." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ── OTP step panel ───────────────────────────────────────── */
+    .otp-panel { display: none; }
+    .otp-panel.active { display: block; }
+
+    .otp-back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      margin-bottom: 20px;
+      transition: color var(--transition);
+    }
+    .otp-back-btn:hover { color: var(--text); }
+
+    .otp-demo-box {
+      background: #FFF7ED;
+      border: 1px solid #FED7AA;
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .otp-demo-label {
+      font-size: .7rem;
+      font-weight: 800;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: #92400E;
+      margin-bottom: 6px;
+    }
+    .otp-demo-code {
+      font-family: var(--font-head);
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: .18em;
+      color: #92400E;
+      line-height: 1;
+    }
+    .otp-demo-note {
+      font-size: .72rem;
+      color: #B45309;
+      margin-top: 6px;
+    }
+
+    .otp-inputs {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .otp-digit {
+      width: 48px;
+      height: 56px;
+      text-align: center;
+      font-family: var(--font-head);
+      font-size: 1.4rem;
+      font-weight: 800;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg-card);
+      color: var(--text);
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    .otp-digit:focus { border-color: var(--text); }
+    .otp-digit.filled { border-color: var(--accent); }
+
+    .otp-timer {
+      text-align: center;
+      font-size: .8rem;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .otp-timer span { font-weight: 700; color: var(--text); }
+
+    .otp-resend-btn {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: .82rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: underline;
+      display: none;
+    }
+    .otp-resend-btn.visible { display: inline; }
+
+    /* ── Success state ────────────────────────────────────────── */
+    .reg-success-panel {
+      display: none;
+      text-align: center;
+      padding: 24px 0;
+    }
+    .reg-success-panel.active { display: block; }
+    .reg-success-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+    }
+    .reg-success-title {
+      font-family: var(--font-head);
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .reg-success-sub { font-size: .88rem; color: var(--muted); margin-bottom: 24px; }
+
+    /* ── Tabs always visible ──────────────────────────────────── */
+    .auth-tabs { margin-bottom: 24px; }
+  </style>
+</head>
+<body>
+
+<div class="auth-page">
+
+  <!-- LEFT — editorial panel -->
+  <div class="auth-left">
+    <div class="auth-brand-text">BookLoop</div>
+    <div>
+      <div class="auth-tagline">
+        Your campus.<br>
+        Their books.<br>
+        <span>Your price.</span>
+      </div>
+      <p style="margin-top:24px; font-size:.9rem; color:rgba(250,247,242,.45); line-height:1.7; max-width:340px;">
+        Join your campus marketplace. Register with your email, verify your identity instantly, and start buying or selling textbooks.
+      </p>
+    </div>
+    <div class="auth-left-foot">
+      &copy; 2026 BookLoop &nbsp;&middot;&nbsp; Made for students
+    </div>
+  </div>
+
+  <!-- RIGHT — form panel -->
+  <div style="display:flex; flex-direction:column; justify-content:center; padding: 80px 64px; background:var(--bg); overflow-y:auto;">
+    <div style="max-width:400px; width:100%;">
+
+      <!-- Dynamic heading -->
+      <h2 id="authHeading" style="font-family:var(--font-head); font-size:1.8rem; font-weight:800; margin-bottom:6px;">
+        Welcome back.
+      </h2>
+      <p id="authSub" style="font-size:.9rem; color:var(--muted); margin-bottom:32px;">
+        Log in to your account or create a new one.
+      </p>
+
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="tabLogin"    onclick="switchTab('login')">Login</div>
+        <div class="auth-tab"        id="tabRegister" onclick="switchTab('register')">Register</div>
+      </div>
+
+      <!-- ─────────────────── LOGIN FORM ─────────────────────── -->
+      <form class="auth-form active" id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label class="form-label" for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" class="form-input" placeholder="yourname@campus.edu" required autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" class="form-input" placeholder="Your password" required autocomplete="current-password" />
+        </div>
+        <div id="loginError" style="color:#B91C1C; font-size:.85rem; margin-bottom:14px; display:none;"></div>
+        <button type="submit" id="loginBtn" class="btn btn-accent btn-full">Login</button>
+      </form>
+
+      <!-- ─────────────────── REGISTER PANEL ─────────────────── -->
+      <!-- Step 1: Registration details -->
+      <div id="registerPanel">
+
+        <form class="auth-form" id="registerForm" onsubmit="handleSendOtp(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="regName">Full Name *</label>
+              <input type="text" id="regName" class="form-input" placeholder="e.g. Rahul Kumar" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="regDept">Department *</label>
+              <select id="regDept" class="form-select" required>
+                <option value="">Select</option>
+                <option>CSE</option><option>ECE</option><option>EEE</option>
+                <option>MECH</option><option>IT</option><option>CIVIL</option><option>Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="regYear">Year *</label>
+              <select id="regYear" class="form-select" required>
+                <option value="">Select</option>
+                <option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="regPhone">Phone</label>
+              <input type="tel" id="regPhone" class="form-input" placeholder="10-digit" maxlength="10" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regEmail">Email *</label>
+            <input type="email" id="regEmail" class="form-input" placeholder="yourname@campus.edu" required autocomplete="email" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regPassword">Password *</label>
+            <input type="password" id="regPassword" class="form-input" placeholder="Min. 6 characters" required minlength="6" autocomplete="new-password" />
+          </div>
+          <div id="registerError" style="color:#B91C1C; font-size:.85rem; margin-bottom:14px; display:none;"></div>
+          <button type="submit" id="sendOtpBtn" class="btn btn-accent btn-full">Send Verification Code →</button>
+        </form>
+
+        <!-- Step 2: OTP verification -->
+        <div class="otp-panel" id="otpPanel">
+          <button class="otp-back-btn" onclick="showRegStep(1)" type="button">← Back to form</button>
+
+          <p style="font-size:.9rem; color:var(--muted); margin-bottom:20px;">
+            Enter the 6-digit code sent to <strong id="otpEmailDisplay"></strong>
+          </p>
+
+          <!-- Demo mode: OTP displayed on screen -->
+          <div class="otp-demo-box" id="otpDemoBox" style="display:none;">
+            <div class="otp-demo-label">Demo Mode — Your OTP</div>
+            <div class="otp-demo-code" id="otpDemoCode">------</div>
+            <div class="otp-demo-note">Email not configured — copy this code above</div>
+          </div>
+
+          <!-- 6-digit OTP input boxes -->
+          <div class="otp-inputs" id="otpInputsRow">
+            <input class="otp-digit" id="otp0" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code" />
+            <input class="otp-digit" id="otp1" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+            <input class="otp-digit" id="otp2" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+            <input class="otp-digit" id="otp3" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+            <input class="otp-digit" id="otp4" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+            <input class="otp-digit" id="otp5" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+          </div>
+
+          <div class="otp-timer" id="otpTimerRow">
+            Code expires in <span id="otpCountdown">10:00</span> &nbsp;·&nbsp;
+            <button class="otp-resend-btn" id="otpResendBtn" type="button" onclick="handleResendOtp()">Resend</button>
+          </div>
+
+          <div id="otpError" style="color:#B91C1C; font-size:.85rem; margin-bottom:14px; display:none;"></div>
+          <button class="btn btn-accent btn-full" id="verifyOtpBtn" onclick="handleVerifyOtp()" type="button">Verify &amp; Create Account</button>
+        </div>
+
+        <!-- Step 3: Success -->
+        <div class="reg-success-panel" id="regSuccessPanel">
+          <div class="reg-success-icon"></div>
+          <div class="reg-success-title">You're in!</div>
+          <p class="reg-success-sub">Your account has been created successfully.<br>Log in with your email and password.</p>
+          <button class="btn btn-accent" onclick="switchTab('login')" type="button">Go to Login →</button>
+        </div>
+
+      </div>
+      <!-- end registerPanel -->
+
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  // ── State ──────────────────────────────────────────────────────
+  var _pendingEmail = "";
+  var _otpTimerInterval = null;
+  var _otpExpiresAt = 0;
+
+  // ── On load: redirect if already logged in ─────────────────────
+  document.addEventListener("DOMContentLoaded", async function() {
+    document.documentElement.style.visibility = "hidden";
+    var user = await fetchCurrentUser();
+    if (user) {
+      window.location.href = "dashboard.html";
+    } else {
+      document.documentElement.style.visibility = "";
+      initOtpInputs();
+    }
+  });
+
+  // ── Tab switching ──────────────────────────────────────────────
+  function switchTab(tab) {
+    var isLogin = (tab === "login");
+
+    document.getElementById("loginForm").classList.toggle("active", isLogin);
+    document.getElementById("registerPanel").style.display = isLogin ? "none" : "";
+    if (!isLogin) document.getElementById("registerForm").classList.add("active");
+
+    document.getElementById("tabLogin").classList.toggle("active", isLogin);
+    document.getElementById("tabRegister").classList.toggle("active", !isLogin);
+
+    document.getElementById("authHeading").textContent = isLogin
+      ? "Welcome back."
+      : "Create your account.";
+    document.getElementById("authSub").textContent = isLogin
+      ? "Log in with your email and password."
+      : "Register and verify your email to get started.";
+
+    // Reset register state when switching to login
+    if (isLogin) {
+      showRegStep(1);
+    }
+  }
+
+  // Initialise register panel hidden
+  document.getElementById("registerPanel").style.display = "none";
+
+  // ── Show a registration step (1=form, 2=otp, 3=success) ────────
+  function showRegStep(step) {
+    document.getElementById("registerForm").style.display    = (step === 1) ? "" : "none";
+    document.getElementById("otpPanel").classList.toggle("active", step === 2);
+    document.getElementById("regSuccessPanel").classList.toggle("active", step === 3);
+  }
+
+  // ── LOGIN ──────────────────────────────────────────────────────
+  async function handleLogin(e) {
+    e.preventDefault();
+    var btn = document.getElementById("loginBtn");
+    btn.disabled = true; btn.textContent = "Logging in…";
+    clearError("loginError");
+
+    var r = await login(
+      document.getElementById("loginEmail").value.trim(),
+      document.getElementById("loginPassword").value
+    );
+
+    if (r.success) {
+      window.location.href = "dashboard.html";
+    } else {
+      showError("loginError", r.message);
+      btn.disabled = false; btn.textContent = "Login";
+    }
+  }
+
+  // ── REGISTER Step 1 — Send OTP ─────────────────────────────────
+  async function handleSendOtp(e) {
+    e.preventDefault();
+    var btn = document.getElementById("sendOtpBtn");
+    btn.disabled = true; btn.textContent = "Sending code…";
+    clearError("registerError");
+
+    var email = document.getElementById("regEmail").value.trim().toLowerCase();
+
+    try {
+      var res = await fetch(API + "/auth/send-otp", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name:     document.getElementById("regName").value.trim(),
+          dept:     document.getElementById("regDept").value,
+          year:     document.getElementById("regYear").value,
+          phone:    document.getElementById("regPhone").value.trim(),
+          email:    email,
+          password: document.getElementById("regPassword").value,
+        }),
+      });
+      var json = await res.json();
+
+      if (!json.success) throw new Error(json.message || "Failed to send OTP.");
+
+      // Save email for step 2
+      _pendingEmail = email;
+      document.getElementById("otpEmailDisplay").textContent = email;
+
+      // Demo mode: show OTP on screen
+      var demoBox = document.getElementById("otpDemoBox");
+      if (json.data.demo_mode && json.data.otp) {
+        document.getElementById("otpDemoCode").textContent = json.data.otp;
+        demoBox.style.display = "";
+        // Also auto-fill the OTP inputs for convenience
+        fillOtpInputs(json.data.otp);
+      } else {
+        demoBox.style.display = "none";
+        clearOtpInputs();
+      }
+
+      // Start countdown
+      startOtpTimer(600);
+
+      // Show OTP step
+      showRegStep(2);
+      document.getElementById("otp0").focus();
+
+    } catch (err) {
+      showError("registerError", err.message);
+    }
+
+    btn.disabled = false; btn.textContent = "Send Verification Code →";
+  }
+
+  // ── REGISTER Step 2 — Verify OTP ──────────────────────────────
+  async function handleVerifyOtp() {
+    var btn = document.getElementById("verifyOtpBtn");
+    btn.disabled = true; btn.textContent = "Verifying…";
+    clearError("otpError");
+
+    var otp = getOtpValue();
+    if (otp.length !== 6) {
+      showError("otpError", "Please enter the complete 6-digit code.");
+      btn.disabled = false; btn.textContent = "Verify & Create Account";
+      return;
+    }
+
+    try {
+      var res = await fetch(API + "/auth/verify-otp", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: _pendingEmail, otp: otp }),
+      });
+      var json = await res.json();
+
+      if (!json.success) throw new Error(json.message || "Verification failed.");
+
+      stopOtpTimer();
+
+      // Pre-fill login email
+      document.getElementById("loginEmail").value = _pendingEmail;
+
+      // Show success step
+      showRegStep(3);
+      showToast("Account created! You can now log in.", "success");
+
+    } catch (err) {
+      showError("otpError", err.message);
+    }
+
+    btn.disabled = false; btn.textContent = "Verify & Create Account";
+  }
+
+  // ── Resend OTP ─────────────────────────────────────────────────
+  async function handleResendOtp() {
+    var btn = document.getElementById("otpResendBtn");
+    btn.textContent = "Sending…";
+
+    // Re-submit with same form values (form is hidden but inputs still exist)
+    try {
+      var res = await fetch(API + "/auth/send-otp", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name:     document.getElementById("regName").value.trim(),
+          dept:     document.getElementById("regDept").value,
+          year:     document.getElementById("regYear").value,
+          phone:    document.getElementById("regPhone").value.trim(),
+          email:    _pendingEmail,
+          password: document.getElementById("regPassword").value,
+        }),
+      });
+      var json = await res.json();
+      if (!json.success) throw new Error(json.message);
+
+      if (json.data.demo_mode && json.data.otp) {
+        document.getElementById("otpDemoCode").textContent = json.data.otp;
+        document.getElementById("otpDemoBox").style.display = "";
+        fillOtpInputs(json.data.otp);
+      }
+
+      clearOtpInputs();
+      startOtpTimer(600);
+      btn.classList.remove("visible");
+      showToast("A new code has been sent.", "success");
+    } catch (e) {
+      showError("otpError", e.message);
+    }
+    btn.textContent = "Resend";
+  }
+
+  // ── OTP input helpers ─────────────────────────────────────────
+  function initOtpInputs() {
+    for (var i = 0; i < 6; i++) {
+      (function(idx) {
+        var el = document.getElementById("otp" + idx);
+        el.addEventListener("input", function() {
+          this.value = this.value.replace(/\D/, "");
+          this.classList.toggle("filled", this.value !== "");
+          if (this.value && idx < 5) document.getElementById("otp" + (idx + 1)).focus();
+        });
+        el.addEventListener("keydown", function(ev) {
+          if (ev.key === "Backspace" && !this.value && idx > 0) {
+            document.getElementById("otp" + (idx - 1)).focus();
+          }
+        });
+        el.addEventListener("paste", function(ev) {
+          ev.preventDefault();
+          var pasted = (ev.clipboardData || window.clipboardData).getData("text").replace(/\D/g, "").slice(0, 6);
+          fillOtpInputs(pasted);
+        });
+      })(i);
+    }
+  }
+
+  function fillOtpInputs(code) {
+    for (var i = 0; i < 6; i++) {
+      var el = document.getElementById("otp" + i);
+      el.value = code[i] || "";
+      el.classList.toggle("filled", !!el.value);
+    }
+    if (code.length >= 6) document.getElementById("otp5").focus();
+  }
+
+  function clearOtpInputs() {
+    for (var i = 0; i < 6; i++) {
+      var el = document.getElementById("otp" + i);
+      el.value = "";
+      el.classList.remove("filled");
+    }
+    document.getElementById("otp0").focus();
+  }
+
+  function getOtpValue() {
+    var code = "";
+    for (var i = 0; i < 6; i++) code += document.getElementById("otp" + i).value;
+    return code;
+  }
+
+  // ── OTP countdown timer ────────────────────────────────────────
+  function startOtpTimer(seconds) {
+    stopOtpTimer();
+    _otpExpiresAt = Date.now() + seconds * 1000;
+    var resendBtn = document.getElementById("otpResendBtn");
+    resendBtn.classList.remove("visible");
+
+    _otpTimerInterval = setInterval(function() {
+      var remaining = Math.max(0, Math.floor((_otpExpiresAt - Date.now()) / 1000));
+      var m = Math.floor(remaining / 60);
+      var s = remaining % 60;
+      document.getElementById("otpCountdown").textContent =
+        (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
+
+      if (remaining === 0) {
+        stopOtpTimer();
+        resendBtn.classList.add("visible");
+        document.getElementById("otpCountdown").textContent = "00:00";
+      }
+    }, 1000);
+  }
+
+  function stopOtpTimer() {
+    if (_otpTimerInterval) { clearInterval(_otpTimerInterval); _otpTimerInterval = null; }
+  }
+
+  // ── Error helpers ──────────────────────────────────────────────
+  function showError(id, msg) {
+    var el = document.getElementById(id);
+    if (el) { el.textContent = msg; el.style.display = ""; }
+  }
+  function clearError(id) {
+    var el = document.getElementById(id);
+    if (el) { el.textContent = ""; el.style.display = "none"; }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wanted Books — BookLoop</title>
+  <meta name="description" content="Post books you are looking for and connect with sellers on your campus." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ── Wanted page extras ── */
+    .wanted-layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: var(--sp-8);
+      align-items: start;
+    }
+    @media (max-width: 768px) {
+      .wanted-layout { grid-template-columns: 1fr; }
+      .wanted-form-card { position: static; }
+    }
+    .wanted-form-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--sp-6);
+      position: sticky;
+      top: 80px;
+    }
+    .wanted-form-card h2 {
+      font-family: var(--font-head);
+      font-size: 1.1rem;
+      font-weight: 800;
+      margin-bottom: var(--sp-5);
+      color: var(--text);
+    }
+    .wanted-list { display: flex; flex-direction: column; gap: 12px; }
+    .wanted-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: var(--sp-4) var(--sp-5);
+      display: flex;
+      gap: var(--sp-4);
+      align-items: flex-start;
+      transition: border-color var(--transition);
+    }
+    .wanted-card:hover { border-color: var(--text-light); }
+    .wanted-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .78rem; font-weight: 800; color: #fff;
+      flex-shrink: 0;
+    }
+    .wanted-body { flex: 1; min-width: 0; }
+    .wanted-title {
+      font-family: var(--font-head);
+      font-size: .95rem; font-weight: 700; color: var(--text);
+      margin-bottom: 4px;
+    }
+    .wanted-meta {
+      font-size: .75rem; color: var(--muted); margin-bottom: 8px;
+    }
+    .wanted-meta span { margin-right: 10px; }
+    .wanted-message {
+      font-size: .82rem; color: var(--text-light);
+      font-style: italic; margin-bottom: 8px;
+    }
+    .wanted-budget {
+      font-size: .85rem; font-weight: 700;
+      color: var(--text);
+    }
+    .wanted-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .wanted-mine-badge {
+      display: inline-block;
+      font-size: .7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .05em; color: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 4px; padding: 1px 6px;
+      margin-left: 6px; vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="dashboard.html" class="navbar-brand">BookLoop</a>
+  <ul class="nav-links" id="navMenu">
+    <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+    <li><a href="explore.html"   class="nav-link">Explore</a></li>
+    <li><a href="sell.html"      class="nav-link">Sell</a></li>
+    <li><a href="wanted.html"    class="nav-link">Wanted</a></li>
+    <li><a href="offers.html"    class="nav-link">Offers</a></li>
+    <li><a href="wishlist.html"  class="nav-link">Wishlist</a></li>
+    <li><a href="profile.html"   class="nav-link">Profile</a></li>
+  </ul>
+  <div class="navbar-actions">
+    <span class="nav-user-name" id="navUserName"></span>
+    <button class="btn btn-ghost btn-sm" onclick="logout()">Logout</button>
+    <a href="sell.html" class="btn btn-accent btn-sm">+ List a Book</a>
+    <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="container">
+    <h1>Wanted Books</h1>
+    <p>Post the books you are looking for. Sellers can find your request and reach out directly.</p>
+  </div>
+</div>
+
+<main style="padding: var(--sp-8) 0 var(--sp-12);">
+  <div class="container">
+    <div class="wanted-layout">
+
+      <!-- Post a Request -->
+      <div class="wanted-form-card">
+        <h2>Post a Request</h2>
+        <form id="wantedForm" onsubmit="handlePost(event)">
+          <div class="form-group">
+            <label class="form-label" for="wTitle">Book Title *</label>
+            <input type="text" id="wTitle" class="form-input" placeholder="e.g. Engineering Mathematics Vol. 2" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="wSubject">Subject</label>
+            <input type="text" id="wSubject" class="form-input" placeholder="e.g. Mathematics" />
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div class="form-group">
+              <label class="form-label" for="wSemester">Semester</label>
+              <select id="wSemester" class="form-input">
+                <option value="">Any</option>
+                <option>1</option><option>2</option><option>3</option>
+                <option>4</option><option>5</option><option>6</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="wBudget">Max Budget (&#8377;)</label>
+              <input type="number" id="wBudget" class="form-input" placeholder="0 = any" min="0" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="wMessage">Note (optional)</label>
+            <textarea id="wMessage" class="form-textarea" rows="3" placeholder="Any edition preference, condition requirement, etc."></textarea>
+          </div>
+          <div id="wantedError" style="color:#B91C1C; font-size:.85rem; margin-bottom:12px; display:none;"></div>
+          <button type="submit" id="wantedSubmitBtn" class="btn btn-accent btn-full">Post Request</button>
+        </form>
+
+        <!-- My requests toggle -->
+        <div style="margin-top: var(--sp-5); border-top: 1px solid var(--border); padding-top: var(--sp-4);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp-3);">
+            <span style="font-size:.85rem; font-weight:700; color:var(--text);">My Requests</span>
+            <button class="btn btn-ghost btn-sm" onclick="loadMyWanted()">Refresh</button>
+          </div>
+          <div id="myWantedList"><span style="font-size:.8rem; color:var(--muted);">Loading...</span></div>
+        </div>
+      </div>
+
+      <!-- All open requests -->
+      <div>
+        <div class="section-hd" style="margin-bottom:var(--sp-4);">
+          <h2>Open Requests</h2>
+          <span class="results-count" id="wantedCount">—</span>
+        </div>
+        <div id="wantedList" class="wanted-list">
+          <div style="color:var(--muted); font-size:.9rem;">Loading...</div>
+        </div>
+        <div id="wantedEmpty" class="empty-state hidden">
+          <h3>No open requests yet</h3>
+          <p>Be the first to post a book you are looking for.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <span>BookLoop &mdash; Made for students</span>
+      <a href="sell.html" class="btn btn-accent btn-sm">+ List a Book</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/app.js"></script>
+<script>
+  var me = null;
+
+  async function init() {
+    me = await requireAuth();
+    if (!me) return;
+    renderNavUser();
+    await Promise.all([loadWanted(), loadMyWanted()]);
+  }
+
+  async function loadWanted() {
+    try {
+      var r = await apiFetch("/wanted");
+      var items = r.data;
+      var list  = document.getElementById("wantedList");
+      var empty = document.getElementById("wantedEmpty");
+      var count = document.getElementById("wantedCount");
+      count.textContent = items.length + " open request" + (items.length !== 1 ? "s" : "");
+      if (items.length === 0) {
+        list.innerHTML = ""; empty.classList.remove("hidden"); return;
+      }
+      empty.classList.add("hidden");
+      list.innerHTML = items.map(function(w) { return renderWantedCard(w, false); }).join("");
+    } catch (e) {
+      document.getElementById("wantedList").innerHTML = '<div style="color:var(--muted);">Could not load requests.</div>';
+    }
+  }
+
+  async function loadMyWanted() {
+    try {
+      var r = await apiFetch("/wanted/mine");
+      var items = r.data;
+      var el = document.getElementById("myWantedList");
+      if (items.length === 0) {
+        el.innerHTML = '<span style="font-size:.8rem; color:var(--muted);">No requests yet.</span>'; return;
+      }
+      el.innerHTML = items.map(function(w) {
+        return '<div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border);">' +
+          '<div>' +
+            '<div style="font-size:.82rem; font-weight:700; color:var(--text);">' + w.title + '</div>' +
+            '<div style="font-size:.72rem; color:var(--muted);">' + w.status + (w.semester ? ' &middot; Sem ' + w.semester : '') + '</div>' +
+          '</div>' +
+          (w.status === "OPEN" ?
+            '<button class="btn btn-ghost btn-sm" onclick="deleteWanted(' + w.id + ')">Remove</button>' :
+            '<span class="badge badge-available">Fulfilled</span>'
+          ) +
+        '</div>';
+      }).join("");
+    } catch (e) {
+      document.getElementById("myWantedList").innerHTML = '<span style="font-size:.8rem; color:var(--muted);">Error loading.</span>';
+    }
+  }
+
+  function renderWantedCard(w, isMine) {
+    var initials = w.userName.split(" ").map(function(x){ return x[0]; }).join("").slice(0,2).toUpperCase();
+    var budgetStr = w.maxBudget > 0 ? "Budget up to &#8377;" + w.maxBudget : "Budget open";
+    var isMineCard = me && w.userId == me.id;
+    return '<div class="wanted-card fade-in">' +
+      '<div class="wanted-avatar">' + initials + '</div>' +
+      '<div class="wanted-body">' +
+        '<div class="wanted-title">' + w.title + (isMineCard ? '<span class="wanted-mine-badge">You</span>' : '') + '</div>' +
+        '<div class="wanted-meta">' +
+          '<span>' + w.userName + ' &middot; ' + w.userDept + '</span>' +
+          (w.subject ? '<span>' + w.subject + '</span>' : '') +
+          (w.semester ? '<span>Sem ' + w.semester + '</span>' : '') +
+          '<span>' + w.createdAt + '</span>' +
+        '</div>' +
+        (w.message ? '<div class="wanted-message">"' + w.message + '"</div>' : '') +
+        '<div class="wanted-budget">' + budgetStr + '</div>' +
+        '<div class="wanted-actions">' +
+          (!isMineCard ? '<a href="sell.html" class="btn btn-accent btn-sm">I Have This Book</a>' : '') +
+          (!isMineCard ? '<a href="explore.html" class="btn btn-outline btn-sm">View My Listings</a>' : '') +
+          (isMineCard ? '<button class="btn btn-ghost btn-sm" onclick="deleteWanted(' + w.id + ')">Remove</button>' : '') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  async function deleteWanted(id) {
+    if (!confirm("Remove this request?")) return;
+    try {
+      await apiFetch("/wanted/" + id, { method: "DELETE" });
+      showToast("Request removed.", "info");
+      await Promise.all([loadWanted(), loadMyWanted()]);
+    } catch (e) {
+      showToast(e.message, "danger");
+    }
+  }
+
+  async function handlePost(e) {
+    e.preventDefault();
+    var btn = document.getElementById("wantedSubmitBtn");
+    var errEl = document.getElementById("wantedError");
+    errEl.style.display = "none";
+    btn.disabled = true; btn.textContent = "Posting...";
+    try {
+      await apiFetch("/wanted", {
+        method: "POST",
+        body: JSON.stringify({
+          title:     document.getElementById("wTitle").value.trim(),
+          subject:   document.getElementById("wSubject").value.trim(),
+          semester:  document.getElementById("wSemester").value,
+          maxBudget: parseInt(document.getElementById("wBudget").value) || 0,
+          message:   document.getElementById("wMessage").value.trim(),
+        }),
+      });
+      showToast("Request posted successfully!", "success");
+      document.getElementById("wantedForm").reset();
+      await Promise.all([loadWanted(), loadMyWanted()]);
+    } catch (e) {
+      errEl.textContent = e.message;
+      errEl.style.display = "";
+    }
+    btn.disabled = false; btn.textContent = "Post Request";
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>

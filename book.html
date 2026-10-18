@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Book Details — BookLoop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="dashboard.html" class="navbar-brand">BookLoop</a>
+  <ul class="nav-links" id="navMenu">
+    <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+    <li><a href="explore.html"   class="nav-link">Explore</a></li>
+    <li><a href="sell.html"      class="nav-link">Sell</a></li>
+    <li><a href="wanted.html"    class="nav-link">Wanted</a></li>
+    <li><a href="offers.html"    class="nav-link">Offers</a></li>
+    <li><a href="wishlist.html"  class="nav-link">Wishlist</a></li>
+    <li><a href="profile.html"   class="nav-link">Profile</a></li>
+  </ul>
+  <div class="navbar-actions">
+    <span class="nav-user-name" id="navUserName"></span>
+    <button class="btn btn-ghost btn-sm" onclick="logout()">Logout</button>
+    <a href="sell.html" class="btn btn-accent btn-sm">+ List a Book</a>
+    <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Breadcrumb -->
+<div style="background:var(--bg); border-bottom:1px solid var(--border); padding:10px 0;">
+  <div class="container" style="font-size:.82rem; color:var(--muted);">
+    <a href="explore.html" style="color:var(--muted);">Explore</a>
+    <span style="margin:0 6px;">/</span>
+    <span id="breadcrumbTitle" style="color:var(--text); font-weight:600;">Book</span>
+  </div>
+</div>
+
+<main class="container">
+
+  <div id="notFound" class="empty-state hidden" style="padding:80px 0;">
+    <h3>Book not found</h3>
+    <p>This listing may have been removed or the link is incorrect.</p>
+    <a href="explore.html" class="btn btn-accent" style="margin-top:var(--sp-3);">Back to Explore</a>
+  </div>
+
+  <div class="book-detail-layout" id="bookDetail">
+
+    <!-- Left: cover + wishlist -->
+    <div>
+      <div class="book-detail-cover" id="bookCover"></div>
+      <button class="btn btn-outline btn-full" id="wishlistBtn" style="margin-top:12px;" onclick="toggleWishlistDetail()">
+        &#9825; Save to Wishlist
+      </button>
+    </div>
+
+    <!-- Right: info -->
+    <div class="book-detail-info">
+      <div class="book-detail-badges" id="detailBadges"></div>
+      <h1 class="book-detail-title" id="detailTitle">-</h1>
+      <p class="book-detail-author" id="detailAuthor">-</p>
+
+      <div class="book-meta-grid">
+        <div class="book-meta-item">
+          <div class="book-meta-label">Subject</div>
+          <div class="book-meta-value" id="detailSubject">-</div>
+        </div>
+        <div class="book-meta-item">
+          <div class="book-meta-label">Semester</div>
+          <div class="book-meta-value" id="detailSemester">-</div>
+        </div>
+        <div class="book-meta-item">
+          <div class="book-meta-label">Condition</div>
+          <div class="book-meta-value" id="detailCondition">-</div>
+        </div>
+        <div class="book-meta-item">
+          <div class="book-meta-label">Listed as</div>
+          <div class="book-meta-value" id="detailType">-</div>
+        </div>
+      </div>
+
+      <div class="book-detail-desc" id="detailDesc">-</div>
+
+      <div class="book-detail-price" id="detailPrice">-</div>
+
+      <div class="seller-card">
+        <div class="seller-avatar" id="sellerAvatar">-</div>
+        <div>
+          <div class="seller-name" id="sellerName">-</div>
+          <div class="seller-info" id="sellerInfo">-</div>
+          <div class="seller-info" id="sellerEmail" style="margin-top:2px; color:var(--muted);">-</div>
+        </div>
+      </div>
+
+      <div id="offerCountNote" style="font-size:.82rem; color:var(--muted); margin-bottom:var(--sp-3);"></div>
+
+      <div id="ownBookNotice" class="hidden" style="padding:12px 16px; border:1px solid var(--border); border-left:3px solid var(--muted); border-radius:0 var(--radius) var(--radius) 0; font-size:.88rem; color:var(--muted); margin-bottom:var(--sp-3);">
+        This is your listing. &nbsp;<a href="offers.html" style="color:var(--accent); font-weight:600;">Review offers received &rarr;</a>
+      </div>
+
+      <div id="actionArea"></div>
+    </div>
+  </div>
+</main>
+
+<!-- OFFER MODAL -->
+<div class="modal-overlay hidden" id="offerModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeOfferModal()">&#x2715;</button>
+    <h3>Make an offer</h3>
+    <p style="font-size:.88rem; color:var(--muted); margin-bottom:var(--sp-4);">
+      for <strong id="modalBookTitle">-</strong>. The seller will review and accept or decline.
+    </p>
+    <div class="form-group">
+      <label class="form-label" for="offerPrice">Your offer price (&#8377;)</label>
+      <input type="number" id="offerPrice" class="form-input" placeholder="e.g. 400" min="1" />
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="offerMessage">Message to seller</label>
+      <textarea id="offerMessage" class="form-textarea" placeholder="Where can you meet? When are you free to collect it?" rows="3"></textarea>
+    </div>
+    <div id="offerError" style="color:#B91C1C; font-size:.85rem; margin-bottom:12px; display:none;"></div>
+    <div style="display:flex; gap:12px;">
+      <button class="btn btn-outline btn-full" onclick="closeOfferModal()">Cancel</button>
+      <button class="btn btn-accent btn-full" onclick="submitOffer()">Send Offer</button>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom"><span>BookLoop &mdash; Made for students</span></div>
+  </div>
+</footer>
+
+<script src="js/app.js"></script>
+<script>
+  var me = null;
+  var bookId = new URLSearchParams(window.location.search).get("id");
+  var currentBook = null;
+
+  async function init() {
+    me = await requireAuth();
+    if (!me) return;
+    renderNavUser();
+    await loadBookDetail();
+    document.getElementById("offerModal").addEventListener("click", function(e){ if(e.target===this) closeOfferModal(); });
+    document.addEventListener("keydown", function(e){ if(e.key==="Escape") closeOfferModal(); });
+  }
+
+  async function loadBookDetail() {
+    currentBook = await getBookById(bookId);
+    if (!currentBook) {
+      document.getElementById("bookDetail").classList.add("hidden");
+      document.getElementById("notFound").classList.remove("hidden");
+      return;
+    }
+    var b = currentBook;
+    document.getElementById("breadcrumbTitle").textContent = b.title;
+    document.title = b.title + " — BookLoop";
+
+    document.getElementById("bookCover").innerHTML =
+      '<div class="book-cover" style="height:320px; background:' + b.color + ';">' +
+      '<span class="book-cover-text">' + (b.cover || b.title.slice(0,4).toUpperCase()) + '</span></div>';
+
+    await updateWishlistBtn();
+    document.getElementById("detailBadges").innerHTML  = getStatusBadge(b.status) + " " + getTypeBadge(b.type);
+    document.getElementById("detailTitle").textContent     = b.title;
+    document.getElementById("detailAuthor").textContent    = "by " + b.author;
+    document.getElementById("detailSubject").textContent   = b.subject;
+    document.getElementById("detailSemester").textContent  = b.semester + " Semester";
+    document.getElementById("detailCondition").textContent = b.condition;
+    document.getElementById("detailType").textContent      = b.type;
+    document.getElementById("detailDesc").textContent      = b.description;
+    document.getElementById("detailPrice").innerHTML       =
+      b.type === "Donate" ? "Free" : "&#8377;" + b.price + '<span style="font-size:.9rem; font-weight:500; color:var(--muted);"> &nbsp;expected price</span>';
+
+    // Seller info from book data (no separate users endpoint needed)
+    var sellerInitials = b.seller.split(" ").map(function(w){ return w[0]; }).join("").slice(0,2);
+    document.getElementById("sellerAvatar").textContent = sellerInitials;
+    document.getElementById("sellerName").textContent   = b.seller;
+    document.getElementById("sellerInfo").textContent   = b.dept;
+    document.getElementById("sellerEmail").textContent  = "";
+
+    if (b.offerCount > 0) document.getElementById("offerCountNote").textContent = b.offerCount + " offer" + (b.offerCount > 1 ? "s" : "") + " already received.";
+
+    if (b.sellerId == me.id) { document.getElementById("ownBookNotice").classList.remove("hidden"); }
+    else { renderActionArea(b.status); }
+  }
+
+  function renderActionArea(status) {
+    var a = document.getElementById("actionArea");
+    if (status === "AVAILABLE") {
+      a.innerHTML = '<button class="btn btn-accent btn-full btn-lg" onclick="openOfferModal()">Make an Offer</button>' +
+        '<p style="font-size:.78rem; color:var(--muted); margin-top:8px;">Your offer goes to the seller. They accept or decline — you get notified on your dashboard.</p>';
+    } else if (status === "RESERVED") {
+      a.innerHTML = '<button class="btn btn-full btn-lg btn-outline" disabled style="cursor:not-allowed; color:var(--muted);">Reserved — no new offers</button>';
+    } else {
+      a.innerHTML = '<button class="btn btn-full btn-lg btn-outline" disabled style="cursor:not-allowed; color:var(--muted);">Sold</button>';
+    }
+  }
+
+  async function updateWishlistBtn() {
+    var btn = document.getElementById("wishlistBtn");
+    if (btn && currentBook) {
+      var inWL = await isInWishlist(currentBook.id);
+      btn.innerHTML = inWL ? "&#9829; Saved" : "&#9825; Save to Wishlist";
+    }
+  }
+
+  async function toggleWishlistDetail() {
+    if (!currentBook) return;
+    await toggleWishlist(currentBook.id);
+    await updateWishlistBtn();
+  }
+
+  function openOfferModal() {
+    document.getElementById("modalBookTitle").textContent = currentBook.title;
+    document.getElementById("offerPrice").value = "";
+    document.getElementById("offerMessage").value = "";
+    document.getElementById("offerError").style.display = "none";
+    document.getElementById("offerModal").classList.remove("hidden");
+    document.getElementById("offerPrice").focus();
+  }
+
+  function closeOfferModal() { document.getElementById("offerModal").classList.add("hidden"); }
+
+  async function submitOffer() {
+    var price = document.getElementById("offerPrice").value.trim();
+    var msg   = document.getElementById("offerMessage").value.trim();
+    var err   = document.getElementById("offerError");
+    if (!price || parseInt(price) <= 0) { err.textContent = "Enter a valid offer price."; err.style.display = ""; return; }
+    if (!msg) { err.textContent = "Add a message — tell the seller where and when."; err.style.display = ""; return; }
+    var btn = document.querySelector("#offerModal .btn-accent");
+    btn.disabled = true; btn.textContent = "Sending…";
+    try {
+      await makeOffer(currentBook.id, currentBook.title, price, msg);
+      closeOfferModal();
+      _cache.books = null;  // force refresh
+      await loadBookDetail();
+    } catch(e) {
+      err.textContent = e.message; err.style.display = "";
+      btn.disabled = false; btn.textContent = "Send Offer";
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile — BookLoop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="dashboard.html" class="navbar-brand">BookLoop</a>
+  <ul class="nav-links" id="navMenu">
+    <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+    <li><a href="explore.html"   class="nav-link">Explore</a></li>
+    <li><a href="sell.html"      class="nav-link">Sell</a></li>
+    <li><a href="wanted.html"    class="nav-link">Wanted</a></li>
+    <li><a href="offers.html"    class="nav-link">Offers</a></li>
+    <li><a href="wishlist.html"  class="nav-link">Wishlist</a></li>
+    <li><a href="profile.html"   class="nav-link">Profile</a></li>
+  </ul>
+  <div class="navbar-actions">
+    <span class="nav-user-name" id="navUserName"></span>
+    <button class="btn btn-ghost btn-sm" onclick="logout()">Logout</button>
+    <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="container">
+    <h1>My Profile</h1>
+    <p>Your account details and activity on BookLoop.</p>
+  </div>
+</div>
+
+<main class="profile-page">
+  <div class="container">
+
+    <div class="profile-card">
+      <div class="profile-avatar-lg" id="profileAvatar">PR</div>
+      <div style="flex:1; min-width:0;">
+        <h2 style="font-size:1.6rem; margin-bottom:4px;" id="profileName">-</h2>
+        <p style="font-size:.88rem; color:var(--muted); margin-bottom:var(--sp-4);" id="profileTagline">-</p>
+        <div class="profile-info-grid" id="profileInfoGrid"></div>
+      </div>
+    </div>
+
+    <div style="display:flex; align-items:baseline; gap:var(--sp-3); margin-bottom:var(--sp-4); flex-wrap:wrap;">
+      <h2 style="font-size:1.2rem;">Activity</h2>
+      <span style="font-size:.82rem; color:var(--muted);">All time</span>
+    </div>
+    <div class="profile-stats-row" style="margin-bottom:var(--sp-12);">
+      <div class="p-stat"><div class="p-stat-num" id="stListed">0</div><div class="p-stat-label">Listed</div></div>
+      <div class="p-stat"><div class="p-stat-num" id="stSold">0</div><div class="p-stat-label">Sold</div></div>
+      <div class="p-stat"><div class="p-stat-num" id="stOffers">0</div><div class="p-stat-label">Offers sent</div></div>
+      <div class="p-stat"><div class="p-stat-num" id="stWishlist">0</div><div class="p-stat-label">Saved</div></div>
+    </div>
+
+    <!-- Danger zone -->
+    <div style="border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;">
+      <div style="padding:var(--sp-3) var(--sp-4); border-bottom:1px solid var(--border); background:var(--bg-card);">
+        <div style="font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);">Danger zone</div>
+      </div>
+      <div style="padding:var(--sp-4); background:var(--bg-card);">
+        <h3 style="font-size:1rem; margin-bottom:4px;">Reset all data</h3>
+        <p style="font-size:.85rem; color:var(--muted); margin-bottom:var(--sp-3);">
+          Wipes localStorage and restores the original 8 sample books. You will be logged out.
+          Use this during a live demo to start fresh.
+        </p>
+        <button class="btn btn-danger btn-sm" onclick="doReset()">Reset &amp; Logout</button>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <span>BookLoop &mdash; Made for students</span>
+      <button onclick="logout()" class="btn btn-ghost btn-sm">Logout</button>
+    </div>
+  </div>
+</footer>
+
+<script src="js/app.js"></script>
+<script>
+  var user = null;
+
+  async function init() {
+    user = await requireAuth();
+    if (!user) return;
+    renderNavUser();
+
+    document.getElementById("profileAvatar").textContent  = user.avatar;
+    document.getElementById("profileName").textContent    = user.name;
+    document.getElementById("profileTagline").textContent = user.dept + " — " + user.year;
+
+    document.getElementById("profileInfoGrid").innerHTML = [
+      { label: "Department", value: user.dept },
+      { label: "Year",       value: user.year },
+      { label: "Email",      value: user.email },
+      { label: "Phone",      value: user.phone || "Not provided" }
+    ].map(function(f){
+      return '<div class="profile-field"><label>' + f.label + '</label><span>' + f.value + '</span></div>';
+    }).join("");
+
+    var books  = (await getBooks()).filter(function(b){ return b.sellerId == user.id; });
+    var offers = (await getOffers()).filter(function(o){ return o.buyerId  == user.id; });
+    var wl     = await getWishlist();
+    document.getElementById("stListed").textContent   = books.length;
+    document.getElementById("stSold").textContent     = books.filter(function(b){ return b.status==="SOLD"; }).length;
+    document.getElementById("stOffers").textContent   = offers.length;
+    document.getElementById("stWishlist").textContent = wl.length;
+  }
+
+  async function doReset() {
+    if (!confirm("Reset all data and logout?")) return;
+    try {
+      await apiFetch("/admin/reset", { method: "POST" });
+    } catch (_) {}
+    window.location.href = "login.html";
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>

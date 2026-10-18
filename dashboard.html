@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — BookLoop</title>
+  <meta name="description" content="BookLoop dashboard — buy, sell, exchange and donate campus textbooks. View live stats, trending books, and your listings." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ── Dashboard-only extras (no overrides to global tokens) ──── */
+
+    /* Purpose strip */
+    .purpose-strip {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      margin-bottom: var(--sp-5);
+    }
+    .purpose-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 999px;
+      font-size: .78rem; font-weight: 700; letter-spacing: .04em;
+      border: 1.5px solid var(--border);
+      background: var(--bg-card); color: var(--text);
+      transition: border-color var(--transition);
+    }
+    .purpose-pill.sell   { border-color: #E4572E44; color: #E4572E; }
+    .purpose-pill.buy    { border-color: #3B82F644; color: #3B82F6; }
+    .purpose-pill.exch   { border-color: #10B98144; color: #10B981; }
+    .purpose-pill.donate { border-color: #F59E0B44; color: #F59E0B; }
+
+    /* Campus-wide stats row */
+    .campus-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+      margin-bottom: var(--sp-8);
+    }
+    .cs-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      text-align: center;
+    }
+    .cs-num {
+      font-family: var(--font-head);
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .cs-label {
+      font-size: .7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+    }
+
+    /* Section header row */
+    .section-hd {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--sp-4);
+      flex-wrap: wrap; gap: 8px;
+    }
+    .section-hd h2 { font-size: 1.1rem; font-weight: 700; }
+    .section-hd a  { font-size: .8rem; color: var(--muted); text-decoration: none; font-weight: 600; }
+    .section-hd a:hover { color: var(--text); }
+
+    /* Pulse grid (trending / recent) */
+    .pulse-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: var(--sp-6);
+    }
+    .pulse-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      display: flex; gap: 12px; align-items: flex-start;
+      text-decoration: none; color: var(--text);
+      transition: border-color var(--transition), transform var(--transition);
+    }
+    .pulse-card:hover { border-color: var(--text-light); transform: translateY(-1px); }
+    .pulse-thumb {
+      width: 40px; height: 40px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .75rem; font-weight: 800; color: #fff; flex-shrink: 0;
+    }
+    .pulse-info { min-width: 0; }
+    .pulse-title {
+      font-size: .85rem; font-weight: 700;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .pulse-meta { font-size: .72rem; color: var(--muted); margin-top: 2px; }
+    .pulse-price { font-size: .8rem; font-weight: 800; color: var(--text); margin-top: 4px; }
+
+    /* Recommended row */
+    .rec-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+      margin-bottom: var(--sp-6);
+    }
+
+    /* Activity feed */
+    .activity-feed { margin-bottom: var(--sp-8); }
+    .activity-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-listing { background: #6366F1; }
+    .dot-offer   { background: #E4572E; }
+    .dot-accept  { background: #10B981; }
+    .dot-reserve { background: #8B5CF6; }
+    .activity-text { flex: 1; font-size: .82rem; color: var(--text); }
+    .activity-text strong { font-weight: 700; }
+    .activity-time { font-size: .72rem; color: var(--muted); flex-shrink: 0; }
+
+    /* How it works */
+    .how-steps {
+      display: flex; gap: 0; flex-wrap: wrap;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: var(--sp-8);
+    }
+    .how-step {
+      flex: 1; min-width: 120px;
+      padding: 16px 14px;
+      border-right: 1px solid var(--border);
+      text-align: center;
+    }
+    .how-step:last-child { border-right: none; }
+    .how-step-num {
+      font-family: var(--font-head);
+      font-size: .7rem; font-weight: 800;
+      color: var(--accent); letter-spacing: .08em;
+      text-transform: uppercase; margin-bottom: 4px;
+    }
+    .how-step-icon { font-size: 1.3rem; margin-bottom: 6px; }
+    .how-step-label { font-size: .78rem; font-weight: 700; color: var(--text); }
+    .how-step-sub   { font-size: .68rem; color: var(--muted); margin-top: 2px; }
+
+    /* Section divider */
+    .section-sep {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: var(--sp-8) 0;
+    }
+
+    /* Empty pulse state */
+    .pulse-empty {
+      grid-column: 1 / -1;
+      padding: 24px;
+      text-align: center;
+      font-size: .85rem;
+      color: var(--muted);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="dashboard.html" class="navbar-brand">BookLoop</a>
+  <ul class="nav-links" id="navMenu">
+    <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+    <li><a href="explore.html"   class="nav-link">Explore</a></li>
+    <li><a href="sell.html"      class="nav-link">Sell</a></li>
+    <li><a href="wanted.html"    class="nav-link">Wanted</a></li>
+    <li><a href="offers.html"    class="nav-link">Offers</a></li>
+    <li><a href="wishlist.html"  class="nav-link">Wishlist</a></li>
+    <li><a href="profile.html"   class="nav-link">Profile</a></li>
+  </ul>
+  <div class="navbar-actions">
+    <span class="nav-user-name" id="navUserName"></span>
+    <button class="btn btn-ghost btn-sm" onclick="logout()">Logout</button>
+    <a href="sell.html" class="btn btn-accent btn-sm">+ List a Book</a>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- ══════════════ HERO ══════════════ -->
+<div class="dashboard-hero">
+  <div class="container">
+
+    <!-- Greeting + purpose pills -->
+    <div class="dashboard-greeting" id="greetingText">Good morning</div>
+    <div class="purpose-strip" style="margin-top:8px;">
+      <span class="purpose-pill sell">Sell</span>
+      <span class="purpose-pill buy">Buy</span>
+      <span class="purpose-pill exch">Exchange</span>
+      <span class="purpose-pill donate">Donate</span>
+      <span style="font-size:.8rem; color:rgba(250,247,242,.5); align-self:center; margin-left:4px;">— Campus Textbook Marketplace</span>
+    </div>
+
+    <!-- My stats row -->
+    <div class="dashboard-stats">
+      <div class="d-stat-card">
+        <div class="d-stat-num" id="statTotal">0</div>
+        <div class="d-stat-label">My Listed</div>
+      </div>
+      <div class="d-stat-card">
+        <div class="d-stat-num" id="statAvailable">0</div>
+        <div class="d-stat-label">Available</div>
+      </div>
+      <div class="d-stat-card">
+        <div class="d-stat-num" id="statReserved">0</div>
+        <div class="d-stat-label">Reserved</div>
+      </div>
+      <div class="d-stat-card">
+        <div class="d-stat-num" id="statSold">0</div>
+        <div class="d-stat-label">Sold</div>
+      </div>
+      <div class="d-stat-card">
+        <div class="d-stat-num" id="statPending">0</div>
+        <div class="d-stat-label">Pending Offers</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════ MAIN CONTENT ══════════════ -->
+<main class="dashboard-content">
+  <div class="container">
+
+    <!-- Quick actions -->
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--sp-6); flex-wrap:wrap; gap:12px;">
+      <a href="sell.html" class="btn btn-accent" id="btnListBook">+ List a Book</a>
+      <div style="display:flex; gap:8px;">
+        <a href="explore.html" class="btn btn-outline btn-sm">Browse Books</a>
+        <a href="offers.html"  class="btn btn-outline btn-sm">My Offers</a>
+        <a href="wishlist.html" class="btn btn-outline btn-sm">Wishlist</a>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         CAMPUS-WIDE STATISTICS
+         ═══════════════════════════════════════ -->
+    <div class="section-hd">
+      <h2>Campus Pulse</h2>
+      <a href="explore.html">View all books →</a>
+    </div>
+    <div class="campus-stats" id="campusStatsRow">
+      <div class="cs-card"><div class="cs-num" id="csBooks">—</div><div class="cs-label">Total Books</div></div>
+      <div class="cs-card"><div class="cs-num" id="csAvail">—</div><div class="cs-label">Available</div></div>
+      <div class="cs-card"><div class="cs-num" id="csSold">—</div><div class="cs-label">Sold</div></div>
+      <div class="cs-card"><div class="cs-num" id="csUsers">—</div><div class="cs-label">Students</div></div>
+      <div class="cs-card"><div class="cs-num" id="csOffers">—</div><div class="cs-label">Active Offers</div></div>
+      <div class="cs-card"><div class="cs-num" id="csCompleted">—</div><div class="cs-label">Completed</div></div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         TRENDING BOOKS
+         ═══════════════════════════════════════ -->
+    <div class="section-hd">
+      <h2>Trending Books</h2>
+      <a href="explore.html">See all →</a>
+    </div>
+    <div class="pulse-grid" id="trendingGrid">
+      <div class="pulse-empty">Loading…</div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         RECENTLY LISTED
+         ═══════════════════════════════════════ -->
+    <div class="section-hd">
+      <h2>Recently Listed</h2>
+      <a href="explore.html">Browse all →</a>
+    </div>
+    <div class="pulse-grid" id="recentGrid">
+      <div class="pulse-empty">Loading…</div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         RECOMMENDED FOR YOU
+         ═══════════════════════════════════════ -->
+    <div class="section-hd" id="recSection" style="display:none;">
+      <h2>Recommended for You</h2>
+      <a href="explore.html">Explore more →</a>
+    </div>
+    <div class="rec-grid" id="recGrid"></div>
+
+    <!-- ═══════════════════════════════════════
+         LIVE CAMPUS SIMULATION
+         ═══════════════════════════════════════ -->
+    <div class="sim-trigger-bar" id="simTriggerBar">
+      <div class="sim-trigger-label">
+        <span class="sim-trigger-title">Live Campus Simulation</span>
+        <span class="sim-trigger-sub">Watch a real end-to-end transaction: List → Request → Match → Offer → Accept → Reserve → Complete</span>
+      </div>
+      <div class="sim-trigger-btns" style="display:flex;gap:8px;align-items:center;">
+        <button class="btn-sim-reset" id="simResetBtn" onclick="simReset()" title="Reset demo data">↺ Reset Demo</button>
+        <button class="btn-sim-run"   id="simRunBtn"   onclick="simRun()">▶ Run Campus Simulation</button>
+      </div>
+    </div>
+
+    <!-- Simulation lifecycle phases -->
+    <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; margin-top:-4px;" id="simPhaseStrip" aria-hidden="true">
+      <span style="font-size:.7rem; color:var(--muted); align-self:center;">Lifecycle:</span>
+      <span id="ph0" style="font-size:.7rem; padding:2px 8px; border-radius:4px; background:var(--bg-card); border:1px solid var(--border); color:var(--muted);">Listing</span>
+      <span style="font-size:.65rem; color:var(--muted); align-self:center;">→</span>
+      <span id="ph1" style="font-size:.7rem; padding:2px 8px; border-radius:4px; background:var(--bg-card); border:1px solid var(--border); color:var(--muted);">Request</span>
+      <span style="font-size:.65rem; color:var(--muted); align-self:center;">→</span>
+      <span id="ph2" style="font-size:.7rem; padding:2px 8px; border-radius:4px; background:var(--bg-card); border:1px solid var(--border); color:var(--muted);">Match</span>
+      <span style="font-size:.65rem; color:var(--muted); align-self:center;">→</span>
+      <span id="ph3" style="font-size:.7rem; padding:2px 8px; border-radius:4px; background:var(--bg-card); border:1px solid var(--border); color:var(--muted);">Offer</span>
+      <span style="font-size:.65rem; color:var(--muted); align-self:center;">→</span>
+      <span id="ph4" style="font-size:.7rem; padding:2px 8px; border-radius:4px; background:var(--bg-card); border:1px solid var(--border); color:var(--muted);">Accepted</span>
+      <span style="font-size:.65rem; color:var(--muted); align-self:center;">→</span>
+      <span id="ph5" style="font-size:.7rem; padding:2px 8px; border-radius:4px; background:var(--bg-card); border:1px solid var(--border); color:var(--muted);">Reserved</span>
+      <span style="font-size:.65rem; color:var(--muted); align-self:center;">→</span>
+      <span id="ph6" style="font-size:.7rem; padding:2px 8px; border-radius:4px; background:var(--bg-card); border:1px solid var(--border); color:var(--muted);">Completed</span>
+    </div>
+
+    <div class="sim-panel" id="simPanel">
+      <div class="sim-panel-header">
+        <div>
+          <div class="sim-panel-headline">Live Campus Activity</div>
+          <div class="sim-panel-sub">Real-time simulation — actual database changes</div>
+        </div>
+        <span class="sim-live-dot" id="simLiveDot">Live</span>
+      </div>
+      <div class="sim-progress-wrap">
+        <div class="sim-progress-bar">
+          <div class="sim-progress-fill" id="simProgressFill"></div>
+        </div>
+      </div>
+      <div class="sim-timeline" id="simTimeline"></div>
+      <div class="sim-summary" id="simSummary">
+        <div class="sim-summary-title">Simulation Complete</div>
+        <div class="sim-summary-grid" id="simSummaryGrid"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         HOW BOOKLOOP WORKS
+         ═══════════════════════════════════════ -->
+    <hr class="section-sep" />
+    <div class="section-hd" style="margin-bottom:var(--sp-3);">
+      <h2>How BookLoop Works</h2>
+    </div>
+    <div class="how-steps">
+      <div class="how-step">
+        <div class="how-step-num">Step 1</div>
+        <div class="how-step-icon">1</div>
+        <div class="how-step-label">List</div>
+        <div class="how-step-sub">Post your book with price, condition &amp; subject</div>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">Step 2</div>
+        <div class="how-step-icon">2</div>
+        <div class="how-step-label">Discover</div>
+        <div class="how-step-sub">Students browse &amp; search by dept, semester</div>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">Step 3</div>
+        <div class="how-step-icon">3</div>
+        <div class="how-step-label">Make Offer</div>
+        <div class="how-step-sub">Send a price offer with a message to the seller</div>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">Step 4</div>
+        <div class="how-step-icon">4</div>
+        <div class="how-step-label">Accept</div>
+        <div class="how-step-sub">Seller accepts &amp; book is reserved for buyer</div>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">Step 5</div>
+        <div class="how-step-icon">5</div>
+        <div class="how-step-label">Complete</div>
+        <div class="how-step-sub">Meet on campus, exchange book, mark as sold</div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         RECENT CAMPUS ACTIVITY FEED
+         ═══════════════════════════════════════ -->
+    <div class="section-hd">
+      <h2>Recent Campus Activity</h2>
+    </div>
+    <div class="activity-feed" id="activityFeed">
+      <div class="activity-item">
+        <div class="activity-dot dot-listing"></div>
+        <div class="activity-text" style="color:var(--muted);">Loading activity…</div>
+      </div>
+    </div>
+
+    <hr class="section-sep" />
+
+    <!-- ═══════════════════════════════════════
+         MY LISTINGS
+         ═══════════════════════════════════════ -->
+    <div style="margin-bottom:var(--sp-8);">
+      <div class="section-hd">
+        <h2>My Listings</h2>
+        <div class="filter-chips" id="dashFilter">
+          <span class="chip active" data-status="All"       onclick="setDashFilter(this)">All</span>
+          <span class="chip"        data-status="AVAILABLE" onclick="setDashFilter(this)">Available</span>
+          <span class="chip"        data-status="RESERVED"  onclick="setDashFilter(this)">Reserved</span>
+          <span class="chip"        data-status="SOLD"      onclick="setDashFilter(this)">Sold</span>
+        </div>
+      </div>
+      <div id="listingsList"></div>
+      <div id="listingsEmpty" class="empty-state hidden">
+        <h3>No listings yet</h3>
+        <p>You haven't listed any books yet. Hit "List a Book" above to get started.</p>
+        <a href="sell.html" class="btn btn-accent" style="margin-top:16px; display:inline-flex;">+ List your first book</a>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         OFFERS I SENT
+         ═══════════════════════════════════════ -->
+    <div style="padding-top:var(--sp-8); border-top:1px solid var(--border);">
+      <div class="section-hd">
+        <h2>Offers I Sent</h2>
+        <a href="offers.html">Manage all →</a>
+      </div>
+      <p style="font-size:.88rem; color:var(--muted); margin-bottom:var(--sp-4);">
+        Offers you have made on other students' books and their current status.
+      </p>
+      <div id="myOffersList"></div>
+      <div id="myOffersEmpty" class="empty-state hidden" style="padding:32px 0; text-align:left;">
+        <h3 style="font-size:1rem;">No offers sent yet</h3>
+        <p>Browse books and click "Make an Offer" to get started.</p>
+        <a href="explore.html" class="btn btn-outline btn-sm" style="margin-top:12px; display:inline-flex;">Browse Books</a>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         CAMPUS IMPACT
+         ═══════════════════════════════════════ -->
+    <div style="padding-top:var(--sp-8); border-top:1px solid var(--border);" id="impactSection">
+      <div class="section-hd" style="margin-bottom:var(--sp-4);">
+        <h2>Campus Impact</h2>
+        <span style="font-size:.8rem; color:var(--muted);">Real numbers from the platform</span>
+      </div>
+      <div class="campus-stats" id="impactGrid">
+        <div class="cs-card"><div class="cs-num" id="impBooksReused">—</div><div class="cs-label">Books Reused</div></div>
+        <div class="cs-card"><div class="cs-num" id="impExchanges">—</div><div class="cs-label">Exchanges</div></div>
+        <div class="cs-card"><div class="cs-num" id="impDonations">—</div><div class="cs-label">Donations</div></div>
+        <div class="cs-card"><div class="cs-num" id="impSavings">—</div><div class="cs-label">Est. Savings (&#8377;)</div></div>
+        <div class="cs-card"><div class="cs-num" id="impSellers">—</div><div class="cs-label">Active Sellers</div></div>
+        <div class="cs-card"><div class="cs-num" id="impCompletedTx">—</div><div class="cs-label">Completed Tx</div></div>
+      </div>
+      <div style="margin-top:var(--sp-4);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <span style="font-size:.78rem; color:var(--muted); font-weight:600;">Platform Utilisation</span>
+          <span style="font-size:.78rem; color:var(--muted);" id="impUtilPct">—%</span>
+        </div>
+        <div style="height:8px; background:var(--border); border-radius:99px; overflow:hidden;">
+          <div id="impUtilBar" style="height:100%; background:var(--accent); border-radius:99px; width:0%; transition:width .6s ease;"></div>
+        </div>
+        <div style="font-size:.72rem; color:var(--muted); margin-top:4px;">Books that found new owners vs total listed</div>
+      </div>
+      <div style="margin-top:var(--sp-4); display:flex; gap:8px; align-items:center;">
+        <a href="wanted.html" class="btn btn-outline btn-sm">View Wanted Board</a>
+        <span style="font-size:.8rem; color:var(--muted);" id="impWantedOpen">— open requests</span>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <span>BookLoop &mdash; Made for students</span>
+      <button onclick="logout()" class="btn btn-ghost btn-sm">Logout</button>
+    </div>
+  </div>
+</footer>
+
+<script src="js/app.js"></script>
+<script>
+  var user             = null;
+  var activeDashFilter = "All";
+  var _cache           = { stats: null };   // local stats cache
+
+  // ════════════════════════════════════════════════════════════
+  //  INIT
+  // ════════════════════════════════════════════════════════════
+  async function init() {
+    user = await requireAuth();
+    if (!user) return;
+    renderNavUser();
+    document.getElementById("greetingText").textContent = getGreeting() + ", " + user.name.split(" ")[0] + ".";
+
+    // Load everything in parallel
+    await Promise.all([
+      loadCampusStats(),
+      loadImpact(),
+      renderListings(),
+      renderMyOffers(),
+    ]);
+  }
+
+
+  // ════════════════════════════════════════════════════════════
+  //  CAMPUS STATS + PULSE SECTIONS
+  // ════════════════════════════════════════════════════════════
+  async function loadCampusStats() {
+    try {
+      var res  = await fetch(API + "/dashboard/stats", { credentials: "include" });
+      var json = await res.json();
+      if (!json.success) return;
+      var s = json.data;
+
+      // Top counter row
+      _setNum("csBooks",     s.totalBooks);
+      _setNum("csAvail",     s.available);
+      _setNum("csSold",      s.sold);
+      _setNum("csUsers",     s.totalUsers);
+      _setNum("csOffers",    s.pendingOffers);
+      _setNum("csCompleted", s.accepted);
+
+      // Trending
+      renderPulseGrid("trendingGrid", s.trending, "No trending books yet — be the first to list!", true);
+      // Recent
+      renderPulseGrid("recentGrid",  s.recent,   "No recent listings.");
+      // Recommended
+      renderRecommended(s.recent);
+      // Activity feed
+      renderActivityFeed(s.activity);
+
+    } catch (e) {
+      // Silently fail — leave the dash functional
+    }
+  }
+
+  function _setNum(id, val) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = val !== undefined ? val : "—";
+  }
+
+  // ════════════════════════════════════════════════════════════
+  //  CAMPUS IMPACT
+  // ════════════════════════════════════════════════════════════
+  async function loadImpact() {
+    try {
+      var res  = await fetch(API + "/dashboard/impact", { credentials: "include" });
+      var json = await res.json();
+      if (!json.success) return;
+      var d = json.data;
+      _setNum("impBooksReused",  d.booksReused);
+      _setNum("impExchanges",    d.exchanges);
+      _setNum("impDonations",    d.donations);
+      _setNum("impSavings",      d.estimatedSavings > 0 ? d.estimatedSavings.toLocaleString("en-IN") : "0");
+      _setNum("impSellers",      d.activeSellers);
+      _setNum("impCompletedTx",  d.completedTx);
+
+      // Utilisation bar
+      var pct = d.totalListed > 0 ? Math.round((d.booksReused / d.totalListed) * 100) : 0;
+      var utilPct = document.getElementById("impUtilPct");
+      var utilBar = document.getElementById("impUtilBar");
+      if (utilPct) utilPct.textContent = pct + "%";
+      if (utilBar)  setTimeout(function(){ utilBar.style.width = pct + "%"; }, 200);
+
+      // Wanted open count
+      var wo = document.getElementById("impWantedOpen");
+      if (wo) wo.textContent = d.wantedOpen + " open wanted request" + (d.wantedOpen !== 1 ? "s" : "");
+    } catch (e) {
+      // Silently fail
+    }
+  }
+
+  function renderPulseGrid(containerId, books, emptyMsg, showOfferBadge) {
+    var el = document.getElementById(containerId);
+    if (!el) return;
+    if (!books || books.length === 0) {
+      el.innerHTML = '<div class="pulse-empty">' + emptyMsg + '</div>';
+      return;
+    }
+    el.innerHTML = books.map(function(b) {
+      var priceStr = b.type === "Donate" ? "Free" : "&#8377;" + b.price;
+      var badge    = "";
+      if (showOfferBadge && b.offerCount > 0) {
+        badge = '<span style="font-size:.65rem;background:#E4572E;color:#fff;padding:1px 6px;border-radius:4px;margin-left:4px;">' + b.offerCount + ' offer' + (b.offerCount > 1 ? "s" : "") + '</span>';
+      }
+      var typeIcon = { Sell:"", Exchange:"", Donate:"" };
+      return (
+        '<a class="pulse-card fade-in" href="book.html?id=' + b.id + '">' +
+          '<div class="pulse-thumb" style="background:' + b.color + ';">' + (b.cover || b.title.slice(0,3)) + '</div>' +
+          '<div class="pulse-info">' +
+            '<div class="pulse-title">' + b.title + '</div>' +
+            '<div class="pulse-meta">' + (typeIcon[b.type] || "") + ' ' + b.type + (b.dept ? ' · ' + b.dept : '') + '</div>' +
+            '<div class="pulse-price">' + priceStr + badge + '</div>' +
+          '</div>' +
+        '</a>'
+      );
+    }).join("");
+  }
+
+  function renderRecommended(allBooks) {
+    if (!allBooks || !user) return;
+    // Simple rule-based: match on user's department
+    var rec = allBooks.filter(function(b) {
+      return b.status === "AVAILABLE" &&
+             b.dept === user.dept &&
+             b.seller !== user.name;   // not their own book
+    });
+    var section = document.getElementById("recSection");
+    var grid    = document.getElementById("recGrid");
+    if (!rec.length || !section || !grid) return;
+    section.style.display = "";
+    renderPulseGrid("recGrid", rec.slice(0, 4), "");
+  }
+
+  function renderActivityFeed(activity) {
+    var el = document.getElementById("activityFeed");
+    if (!el) return;
+    if (!activity || activity.length === 0) {
+      el.innerHTML = '<div class="activity-item"><div class="activity-text" style="color:var(--muted);">No recent activity yet. Be the first to list a book!</div></div>';
+      return;
+    }
+    el.innerHTML = activity.map(function(a) {
+      var dot   = a.kind === "listing" ? "dot-listing" : (a.status === "ACCEPTED" ? "dot-accept" : "dot-offer");
+      var label = "";
+      if (a.kind === "listing") {
+        label = "<strong>" + a.actor + "</strong> listed <strong>" + a.title + "</strong>";
+        if (a.price && a.price > 0) label += " at &#8377;" + a.price;
+      } else {
+        label = "<strong>" + a.actor + "</strong> made an offer on <strong>" + a.title + "</strong>";
+        if (a.status === "ACCEPTED") label = "<strong>Offer accepted</strong> on <strong>" + a.title + "</strong>";
+      }
+      var when = a.createdAt ? a.createdAt.replace("T", " ").slice(0, 16) : "";
+      return (
+        '<div class="activity-item">' +
+          '<div class="activity-dot ' + dot + '"></div>' +
+          '<div class="activity-text">' + label + '</div>' +
+          '<div class="activity-time">' + when + '</div>' +
+        '</div>'
+      );
+    }).join("");
+  }
+
+  // ════════════════════════════════════════════════════════════
+  //  MY LISTINGS
+  // ════════════════════════════════════════════════════════════
+  function renderListingItem(book, offers) {
+    var pendingCount = offers.filter(function(o) {
+      return o.bookId == book.id && o.status === "PENDING";
+    }).length;
+    var acceptedCount = offers.filter(function(o) {
+      return o.bookId == book.id && o.status === "ACCEPTED";
+    }).length;
+
+    var statusClass = { AVAILABLE:"badge-available", RESERVED:"badge-reserved", SOLD:"badge-sold" };
+    var typeIcon    = { Sell:"", Exchange:"", Donate:"" };
+
+    var offerBadge = "";
+    if (pendingCount > 0) {
+      offerBadge = ' &nbsp;&middot;&nbsp; <strong style="color:var(--accent);">' + pendingCount + " new offer" + (pendingCount > 1 ? "s" : "") + "</strong>";
+    } else if (acceptedCount > 0) {
+      offerBadge = ' &nbsp;&middot;&nbsp; <strong style="color:#10B981;">Offer accepted</strong>';
+    }
+
+    return (
+      '<div class="listing-item fade-in">' +
+        '<div class="listing-cover" style="background:' + book.color + ';">' +
+          (book.cover || book.title.slice(0,3)) +
+        '</div>' +
+        '<div class="listing-info">' +
+          '<div class="listing-title">' + book.title + '</div>' +
+          '<div class="listing-meta">by ' + book.author +
+            ' &nbsp;&middot;&nbsp; ' + (typeIcon[book.type] || "") + ' ' + book.type +
+            ' &nbsp;&middot;&nbsp; ' + book.condition +
+            offerBadge +
+          '</div>' +
+        '</div>' +
+        '<div style="font-weight:800; font-size:.95rem; flex-shrink:0;">' +
+          (book.type === "Donate" ? "Free" : "&#8377;" + book.price) +
+        '</div>' +
+        '<span class="badge ' + (statusClass[book.status] || "") + '">' + book.status + '</span>' +
+        '<div class="listing-actions">' +
+          (book.status === "RESERVED" ? '<button class="btn btn-warning btn-sm" onclick="handleMarkSold(' + book.id + ')">Mark Sold</button>' : "") +
+          '<a href="book.html?id=' + book.id + '" class="btn btn-ghost btn-sm">View</a>' +
+          (pendingCount > 0 ? '<a href="offers.html" class="btn btn-outline btn-sm">Offers (' + pendingCount + ')</a>' : "") +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  function renderOfferSentItem(offer, books) {
+    var book = books.find(function(b) { return b.id == offer.bookId; });
+    var cls  = { PENDING:"badge-sell", ACCEPTED:"badge-available", REJECTED:"badge-sold" };
+    return (
+      '<div class="listing-item fade-in">' +
+        '<div class="listing-cover" style="background:' + (book ? book.color : "#8A8378") + ';">' +
+          (book ? (book.cover || book.title.slice(0,3)) : "?") +
+        '</div>' +
+        '<div class="listing-info">' +
+          '<div class="listing-title">' + offer.bookTitle + '</div>' +
+          '<div class="listing-meta">Offered &#8377;' + offer.offerPrice +
+            ' &nbsp;&middot;&nbsp; ' + offer.createdAt +
+            (offer.status === "ACCEPTED" ? ' &nbsp;&middot;&nbsp; <strong style="color:#10B981;">Accepted!</strong>' : "") +
+          '</div>' +
+          (offer.message ? '<div style="font-size:.78rem;color:var(--muted);margin-top:2px;font-style:italic;">"' + offer.message + '"</div>' : "") +
+        '</div>' +
+        '<span class="badge ' + (cls[offer.status] || "") + '">' + offer.status + '</span>' +
+        (book ? '<a href="book.html?id=' + book.id + '" class="btn btn-ghost btn-sm">View</a>' : "") +
+      '</div>'
+    );
+  }
+
+  function setDashFilter(chip) {
+    document.querySelectorAll("#dashFilter .chip").forEach(function(c){ c.classList.remove("active"); });
+    chip.classList.add("active");
+    activeDashFilter = chip.dataset.status;
+    renderListings();
+  }
+
+  async function renderListings() {
+    var allBooks  = await getBooks();
+    var allOffers = await getOffers();
+    var all = allBooks.filter(function(b){ return b.sellerId == user.id; });
+
+    document.getElementById("statTotal").textContent     = all.length;
+    document.getElementById("statAvailable").textContent = all.filter(function(b){ return b.status === "AVAILABLE"; }).length;
+    document.getElementById("statReserved").textContent  = all.filter(function(b){ return b.status === "RESERVED"; }).length;
+    document.getElementById("statSold").textContent      = all.filter(function(b){ return b.status === "SOLD"; }).length;
+
+    var myBookIds = all.map(function(b){ return b.id; });
+    var pending   = allOffers.filter(function(o){ return myBookIds.includes(o.bookId) && o.status === "PENDING"; }).length;
+    document.getElementById("statPending").textContent = pending;
+
+    var books = activeDashFilter === "All" ? all : all.filter(function(b){ return b.status === activeDashFilter; });
+    var list  = document.getElementById("listingsList");
+    var empty = document.getElementById("listingsEmpty");
+    if (books.length === 0) { list.innerHTML = ""; empty.classList.remove("hidden"); }
+    else { empty.classList.add("hidden"); list.innerHTML = books.map(function(b){ return renderListingItem(b, allOffers); }).join(""); }
+  }
+
+  async function renderMyOffers() {
+    var allBooks  = await getBooks();
+    var allOffers = await getOffers();
+    var sent  = allOffers.filter(function(o){ return o.buyerId == user.id; });
+    sent.sort(function(a,b){ return b.id - a.id; });
+    var list  = document.getElementById("myOffersList");
+    var empty = document.getElementById("myOffersEmpty");
+    if (sent.length === 0) { list.innerHTML = ""; empty.classList.remove("hidden"); }
+    else { empty.classList.add("hidden"); list.innerHTML = sent.map(function(o){ return renderOfferSentItem(o, allBooks); }).join(""); }
+  }
+
+  async function handleMarkSold(id) {
+    if (!confirm("Mark this book as SOLD?")) return;
+    await markAsSold(id);
+    _cache.books = null;
+    await renderListings();
+  }
+
+  // ════════════════════════════════════════════════════════════
+  //  LIVE CAMPUS SIMULATION
+  // ════════════════════════════════════════════════════════════
+  var _simRunning = false;
+  var PHASE_LABELS = ["LISTING","REQUEST","MATCH","OFFER","ACCEPTED","RESERVED","COMPLETED"];
+
+  function simSleep(ms) {
+    return new Promise(function(resolve){ setTimeout(resolve, ms); });
+  }
+
+  function _activatePhase(idx) {
+    for (var i = 0; i <= idx; i++) {
+      var el = document.getElementById("ph" + i);
+      if (el) {
+        el.style.background = (i === idx) ? "var(--accent)" : "#16A34A";
+        el.style.color      = "#fff";
+        el.style.borderColor = "transparent";
+      }
+    }
+  }
+
+  function _resetPhases() {
+    for (var i = 0; i < 7; i++) {
+      var el = document.getElementById("ph" + i);
+      if (el) {
+        el.style.background   = "";
+        el.style.color        = "";
+        el.style.borderColor  = "";
+      }
+    }
+  }
+
+  function simStepHTML(step, index) {
+    return (
+      '<div class="sim-step" id="simStep' + index + '">' +
+        '<div class="sim-step-icon" style="background:' + step.color + '22; border-color:' + step.color + '44;">' +
+          step.icon +
+        '</div>' +
+        '<div class="sim-step-body">' +
+          '<div class="sim-step-title">' + step.title + '</div>' +
+          '<div class="sim-step-sub">' + step.sub + '</div>' +
+        '</div>' +
+        '<div class="sim-step-check" id="simCheck' + index + '">✓</div>' +
+      '</div>'
+    );
+  }
+
+  function simSummaryHTML(s) {
+    var items = [
+      { label: "Match Found", value: s.matchPct + "%",   cls: "sim-accent" },
+      { label: "Offer Price", value: "&#8377;" + s.offerPrice, cls: "" },
+      { label: "Status",      value: s.status,           cls: "sim-green" },
+      { label: "Students",    value: s.students,         cls: "" },
+      { label: "Book",        value: s.book,             cls: "" },
+      { label: "Seller",      value: s.seller,           cls: "" },
+      { label: "Buyer",       value: s.buyer,            cls: "" },
+      { label: "Offer #",     value: "#" + s.offerId,   cls: "" },
+    ];
+    return items.map(function(item) {
+      return (
+        '<div class="sim-summary-item">' +
+          '<span class="sim-summary-label">' + item.label + '</span>' +
+          '<span class="sim-summary-value ' + item.cls + '">' + item.value + '</span>' +
+        '</div>'
+      );
+    }).join("");
+  }
+
+  async function simRun() {
+    if (_simRunning) return;
+    _simRunning = true;
+
+    var runBtn      = document.getElementById("simRunBtn");
+    var resetBtn    = document.getElementById("simResetBtn");
+    var panel       = document.getElementById("simPanel");
+    var liveDot     = document.getElementById("simLiveDot");
+    var timeline    = document.getElementById("simTimeline");
+    var progress    = document.getElementById("simProgressFill");
+    var summary     = document.getElementById("simSummary");
+    var summaryGrid = document.getElementById("simSummaryGrid");
+
+    runBtn.disabled = true;
+    runBtn.innerHTML = '<span class="sim-spinner"></span> Running…';
+    resetBtn.style.opacity = "0.4"; resetBtn.style.pointerEvents = "none";
+
+    timeline.innerHTML = "";
+    summary.classList.remove("sim-summary-show", "sim-summary-visible");
+    progress.style.width = "0%";
+    panel.classList.add("sim-visible");
+    _resetPhases();
+    panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+    try {
+      var res  = await fetch(API + "/demo/simulation", {
+        method: "POST", credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      var json = await res.json();
+      if (!json.success) throw new Error(json.message || "Simulation failed.");
+
+      var steps   = json.data.steps;
+      var simData = json.data.summary;
+      timeline.innerHTML = steps.map(function(s, i){ return simStepHTML(s, i); }).join("");
+
+      var totalSteps = steps.length;
+      for (var i = 0; i < totalSteps; i++) {
+        await simSleep(i === 0 ? 300 : 900);
+        var stepEl  = document.getElementById("simStep" + i);
+        var checkEl = document.getElementById("simCheck" + i);
+        if (stepEl)  stepEl.classList.add("sim-step-visible");
+        await simSleep(350);
+        if (checkEl) checkEl.style.background = "#16A34A";
+        progress.style.width = Math.round(((i + 1) / totalSteps) * 100) + "%";
+        _activatePhase(i);
+
+        if (i === 2) showToast(steps[i].title, "success");
+        if (i === 4) showToast(steps[i].title, "success");
+        if (i === 6) showToast("Transaction Completed!", "success");
+      }
+
+      await simSleep(600);
+      summaryGrid.innerHTML = simSummaryHTML(simData);
+      summary.classList.add("sim-summary-show");
+      summary.getBoundingClientRect();
+      summary.classList.add("sim-summary-visible");
+
+      // Refresh all data
+      _cache.books  = null;
+      _cache.offers = null;
+      await Promise.all([loadCampusStats(), renderListings(), renderMyOffers()]);
+
+      runBtn.innerHTML        = "Run Again";
+      liveDot.textContent    = "Complete";
+      liveDot.style.color    = "#4ADE80";
+
+    } catch (e) {
+      showToast("Simulation error: " + e.message, "danger");
+      runBtn.innerHTML = "Run Campus Simulation";
+      _resetPhases();
+    }
+
+    runBtn.disabled = false;
+    resetBtn.style.opacity = ""; resetBtn.style.pointerEvents = "";
+    _simRunning = false;
+  }
+
+  async function simReset() {
+    if (_simRunning) return;
+    var resetBtn = document.getElementById("simResetBtn");
+    var panel    = document.getElementById("simPanel");
+    var runBtn   = document.getElementById("simRunBtn");
+
+    resetBtn.style.opacity = "0.5"; resetBtn.style.pointerEvents = "none";
+    try {
+      var res  = await fetch(API + "/demo/reset", {
+        method: "POST", credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      var json = await res.json();
+      if (!json.success) throw new Error(json.message || "Reset failed.");
+
+      panel.classList.remove("sim-visible");
+      document.getElementById("simTimeline").innerHTML    = "";
+      document.getElementById("simSummary").classList.remove("sim-summary-show", "sim-summary-visible");
+      document.getElementById("simProgressFill").style.width = "0%";
+      document.getElementById("simLiveDot").textContent  = "Live";
+      document.getElementById("simLiveDot").style.color  = "";
+      runBtn.innerHTML = "Run Campus Simulation";
+      _resetPhases();
+
+      _cache.books  = null;
+      _cache.offers = null;
+      await Promise.all([loadCampusStats(), renderListings(), renderMyOffers()]);
+      showToast("Demo reset — ready to run again.", "info");
+    } catch (e) {
+      showToast("Reset error: " + e.message, "danger");
+    }
+    resetBtn.style.opacity = ""; resetBtn.style.pointerEvents = "";
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>

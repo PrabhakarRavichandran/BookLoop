@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wishlist — BookLoop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="dashboard.html" class="navbar-brand">BookLoop</a>
+  <ul class="nav-links" id="navMenu">
+    <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+    <li><a href="explore.html"   class="nav-link">Explore</a></li>
+    <li><a href="sell.html"      class="nav-link">Sell</a></li>
+    <li><a href="wanted.html"    class="nav-link">Wanted</a></li>
+    <li><a href="offers.html"    class="nav-link">Offers</a></li>
+    <li><a href="wishlist.html"  class="nav-link">Wishlist</a></li>
+    <li><a href="profile.html"   class="nav-link">Profile</a></li>
+  </ul>
+  <div class="navbar-actions">
+    <span class="nav-user-name" id="navUserName"></span>
+    <button class="btn btn-ghost btn-sm" onclick="logout()">Logout</button>
+    <a href="sell.html" class="btn btn-accent btn-sm">+ List a Book</a>
+    <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="container">
+    <h1>Wishlist</h1>
+    <p id="wishlistSub">Books you have saved. Make an offer before they get reserved.</p>
+  </div>
+</div>
+
+<main class="wishlist-page">
+  <div class="container">
+    <div class="books-grid" id="wishlistGrid"></div>
+    <div class="empty-state hidden" id="wishlistEmpty">
+      <h3>Nothing saved yet</h3>
+      <p>Click the heart icon on any book in Explore to save it here. Useful for books that are not available yet.</p>
+      <a href="explore.html" class="btn btn-accent" style="margin-top:var(--sp-3);">Browse Books</a>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom"><span>BookLoop &mdash; Made for students</span></div>
+  </div>
+</footer>
+
+<script src="js/app.js"></script>
+<script>
+  async function init() {
+    var user = await requireAuth();
+    if (!user) return;
+    renderNavUser();
+    await render();
+  }
+
+  async function render() {
+    var ids   = await getWishlist();
+    var allBooks = await getBooks();
+    var books = ids.map(Number).map(function(id){ return allBooks.find(function(b){ return b.id == id; }); }).filter(Boolean);
+    var grid  = document.getElementById("wishlistGrid");
+    var empty = document.getElementById("wishlistEmpty");
+    var sub   = document.getElementById("wishlistSub");
+
+    if (books.length === 0) { grid.innerHTML = ""; empty.classList.remove("hidden"); return; }
+    empty.classList.add("hidden");
+    sub.textContent = books.length + " book" + (books.length > 1 ? "s" : "") + " saved.";
+
+    grid.innerHTML = books.map(function(book) {
+      return '<div class="card fade-in">' +
+        getBookCoverHTML(book) +
+        '<div class="book-card-body">' +
+          '<div class="book-card-header">' +
+            '<span class="book-card-title">' + book.title + '</span>' +
+            '<button class="heart-btn" onclick="remove(' + book.id + ')">&#9829;</button>' +
+          '</div>' +
+          '<div class="book-card-author">by ' + book.author + '</div>' +
+          '<div class="book-card-meta"><span class="book-price">' + (book.type==="Donate"?"Free":"&#8377;"+book.price) + '</span><span class="book-condition">' + book.condition + '</span></div>' +
+          '<div style="font-size:.75rem;color:var(--muted);margin-bottom:8px;">Sem ' + book.semester + ' &middot; ' + book.subject + '</div>' +
+          '<div class="book-status-row">' + getStatusBadge(book.status) + ' ' + getTypeBadge(book.type) + '</div>' +
+          '<div class="book-seller"><strong>' + book.seller + '</strong> &middot; ' + (book.dept||"CSE") + '</div>' +
+          '<div style="display:flex; gap:8px; margin-top:8px;">' +
+            '<a href="book.html?id=' + book.id + '" class="btn btn-accent btn-sm btn-full">View &amp; Offer</a>' +
+            '<button class="btn btn-ghost btn-sm" onclick="remove(' + book.id + ')">Remove</button>' +
+          '</div>' +
+        '</div></div>';
+    }).join("");
+  }
+
+  async function remove(id) { await removeFromWishlist(id); await render(); }
+  document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>
